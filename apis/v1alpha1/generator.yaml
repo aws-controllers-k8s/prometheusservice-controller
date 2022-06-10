@@ -1,0 +1,8 @@
+ignore:
+  field_paths: null
+  operations: null
+  resource_names:
+  - Workspace
+  - RuleGroupsNamespace
+  - AlertManagerDefinition
+model_name: amp 
