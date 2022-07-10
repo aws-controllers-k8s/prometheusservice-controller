@@ -167,6 +167,3 @@ class TestWorkspace:
 
         _, deleted = k8s.delete_custom_resource(workspace_ref)
         assert deleted
-
-
-   
