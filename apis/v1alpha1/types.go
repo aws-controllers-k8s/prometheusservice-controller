@@ -27,3 +27,62 @@ var (
 	_ = &aws.JSONValue{}
 	_ = ackv1alpha1.AWSAccountID("")
 )
+
+// Represents the properties of an alert manager definition.
+type AlertManagerDefinitionDescription struct {
+	CreatedAt  *metav1.Time `json:"createdAt,omitempty"`
+	ModifiedAt *metav1.Time `json:"modifiedAt,omitempty"`
+}
+
+// Represents a description of the rule groups namespace.
+type RuleGroupsNamespaceDescription struct {
+	CreatedAt  *metav1.Time `json:"createdAt,omitempty"`
+	ModifiedAt *metav1.Time `json:"modifiedAt,omitempty"`
+	// The list of tags assigned to the resource.
+	Tags map[string]*string `json:"tags,omitempty"`
+}
+
+// Represents a summary of the rule groups namespace.
+type RuleGroupsNamespaceSummary struct {
+	CreatedAt  *metav1.Time `json:"createdAt,omitempty"`
+	ModifiedAt *metav1.Time `json:"modifiedAt,omitempty"`
+	// The list of tags assigned to the resource.
+	Tags map[string]*string `json:"tags,omitempty"`
+}
+
+// Represents the properties of a workspace.
+type WorkspaceDescription struct {
+	// A user-assigned workspace alias.
+	Alias *string `json:"alias,omitempty"`
+	// An ARN identifying a Workspace.
+	ARN                *string      `json:"arn,omitempty"`
+	CreatedAt          *metav1.Time `json:"createdAt,omitempty"`
+	PrometheusEndpoint *string      `json:"prometheusEndpoint,omitempty"`
+	// Represents the status of a workspace.
+	Status *WorkspaceStatus_SDK `json:"status,omitempty"`
+	// The list of tags assigned to the resource.
+	Tags map[string]*string `json:"tags,omitempty"`
+	// A workspace ID.
+	WorkspaceID *string `json:"workspaceID,omitempty"`
+}
+
+// Represents the status of a workspace.
+type WorkspaceStatus_SDK struct {
+	// State of a workspace.
+	StatusCode *string `json:"statusCode,omitempty"`
+}
+
+// Represents a summary of the properties of a workspace.
+type WorkspaceSummary struct {
+	// A user-assigned workspace alias.
+	Alias *string `json:"alias,omitempty"`
+	// An ARN identifying a Workspace.
+	ARN       *string      `json:"arn,omitempty"`
+	CreatedAt *metav1.Time `json:"createdAt,omitempty"`
+	// Represents the status of a workspace.
+	Status *WorkspaceStatus_SDK `json:"status,omitempty"`
+	// The list of tags assigned to the resource.
+	Tags map[string]*string `json:"tags,omitempty"`
+	// A workspace ID.
+	WorkspaceID *string `json:"workspaceID,omitempty"`
+}

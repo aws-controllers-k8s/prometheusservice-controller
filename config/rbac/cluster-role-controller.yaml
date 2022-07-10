@@ -33,6 +33,26 @@ rules:
   - patch
   - watch
 - apiGroups:
+  - prometheusservice.services.k8s.aws
+  resources:
+  - workspaces
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - prometheusservice.services.k8s.aws
+  resources:
+  - workspaces/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
   - services.k8s.aws
   resources:
   - adoptedresources

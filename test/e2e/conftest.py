@@ -48,4 +48,4 @@ def k8s_client():
 
 @pytest.fixture(scope='module')
 def prometheusservice_client():
-    return boto3.client('prometheusservice')
+    return boto3.client('amp')
