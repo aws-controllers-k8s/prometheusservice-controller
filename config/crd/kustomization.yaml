@@ -3,3 +3,4 @@ kind: Kustomization
 bases:
   - common
 resources:
+  - bases/prometheusservice.services.k8s.aws_workspaces.yaml

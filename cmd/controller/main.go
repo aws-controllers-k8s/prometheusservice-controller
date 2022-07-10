@@ -33,6 +33,8 @@ import (
 	svctypes "github.com/aws-controllers-k8s/prometheusservice-controller/apis/v1alpha1"
 	svcresource "github.com/aws-controllers-k8s/prometheusservice-controller/pkg/resource"
 
+	_ "github.com/aws-controllers-k8s/prometheusservice-controller/pkg/resource/workspace"
+
 	"github.com/aws-controllers-k8s/prometheusservice-controller/pkg/version"
 )
 

@@ -1,0 +1,11 @@
+
+apiVersion: prometheusservice.services.k8s.aws/v1alpha1
+kind: Workspace
+metadata:
+  namespace: default
+  name: $WORKSPACE_ALIAS
+spec:
+  alias: $WORKSPACE_ALIAS
+  tags:
+    k1: v1
+    k2: v2
