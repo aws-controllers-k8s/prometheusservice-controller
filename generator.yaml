@@ -18,6 +18,4 @@ resources:
         code: customPreCompare(delta, a, b)
       sdk_create_post_set_output:
         template_path: hooks/workspace/sdk_create_post_set_output.go.tpl
-      sdk_read_one_post_set_output:
-        template_path: hooks/workspace/sdk_read_one_post_set_output.go.tpl
 model_name: amp 
