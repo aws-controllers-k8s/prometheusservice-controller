@@ -26,10 +26,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-var (
-	ErrWorkspaceCreating = errors.New("Workspace in 'CREATING' state, cannot be modified or deleted")
-)
-
 // workspaceCreating returns true if the supplied workspace is in the process
 // of being created
 func workspaceCreating(r *resource) bool {

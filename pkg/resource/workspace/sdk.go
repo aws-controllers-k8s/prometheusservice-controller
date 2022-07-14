@@ -120,10 +120,6 @@ func (rm *resourceManager) sdkFind(
 	}
 
 	rm.setStatusDefaults(ko)
-	if workspaceCreating(&resource{ko}) {
-		return &resource{ko}, requeueWaitWhileCreating
-	}
-
 	return &resource{ko}, nil
 }
 
