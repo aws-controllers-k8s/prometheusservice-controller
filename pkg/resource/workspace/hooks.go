@@ -105,7 +105,7 @@ func (rm *resourceManager) updateWorkspaceTags(
 	exit := rlog.Trace("rm.updateWorkspaceTags")
 	defer exit(err)
 
-	added, removed, updated := compareMaps(latest.ko.Spec.Tags, desired.ko.Spec.Tags)
+	addedOrUpdated, removed := compareMaps(latest.ko.Spec.Tags, desired.ko.Spec.Tags)
 
 	if len(removed) > 0 {
 		removeTags := []*string{}
@@ -125,18 +125,10 @@ func (rm *resourceManager) updateWorkspaceTags(
 		}
 	}
 
-	if len(updated)+len(added) > 0 {
-		addedTags := map[string]*string{}
-		for k, v := range added {
-			addedTags[k] = v
-		}
-		for k, v := range updated {
-			addedTags[k] = v
-		}
-
+	if len(addedOrUpdated) > 0 {
 		input := &svcsdk.TagResourceInput{
 			ResourceArn: (*string)(desired.ko.Status.ACKResourceMetadata.ARN),
-			Tags:        addedTags,
+			Tags:        addedOrUpdated,
 		}
 		_, err = rm.sdkapi.TagResourceWithContext(ctx, input)
 		rm.metrics.RecordAPICall("UPDATE", "TagResource", err)
@@ -174,15 +166,14 @@ func (rm *resourceManager) updateWorkspaceAlias(
 	return nil
 }
 
-// compareMaps compares two string to string maps and returns three outputs: a
-// map of the new key/values observed, a list of the keys of the removed values
-// and a map containing the updated keys and their new values.
+// compareMaps compares two string to string maps and returns two outputs: a
+// map of the new and updated key/values observed, and a list of the keys of the
+// removed values.
 func compareMaps(
 	a map[string]*string,
 	b map[string]*string,
-) (added map[string]*string, removed []string, updated map[string]*string) {
-	added = map[string]*string{}
-	updated = map[string]*string{}
+) (addedOrUpdated map[string]*string, removed []string) {
+	addedOrUpdated = map[string]*string{}
 	visited := make(map[string]bool, len(a))
 	for keyA, valueA := range a {
 		valueB, found := b[keyA]
@@ -191,14 +182,14 @@ func compareMaps(
 			continue
 		}
 		if *valueA != *valueB {
-			updated[keyA] = valueB
+			addedOrUpdated[keyA] = valueB
 		}
 		visited[keyA] = true
 	}
 	for keyB, valueB := range b {
 		_, found := a[keyB]
 		if !found {
-			added[keyB] = valueB
+			addedOrUpdated[keyB] = valueB
 		}
 	}
 	return

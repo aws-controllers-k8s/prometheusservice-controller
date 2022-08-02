@@ -28,11 +28,10 @@ func Test_compareMaps(t *testing.T) {
 		b map[string]*string
 	}
 	tests := []struct {
-		name        string
-		args        args
-		wantAdded   map[string]*string
-		wantRemoved []string
-		wantUpdated map[string]*string
+		name               string
+		args               args
+		wantAddedorUpdated map[string]*string
+		wantRemoved        []string
 	}{
 		{
 			name: "empty maps",
@@ -40,9 +39,8 @@ func Test_compareMaps(t *testing.T) {
 				a: map[string]*string{},
 				b: map[string]*string{},
 			},
-			wantAdded:   map[string]*string{},
-			wantRemoved: nil,
-			wantUpdated: map[string]*string{},
+			wantAddedorUpdated: map[string]*string{},
+			wantRemoved:        nil,
 		},
 		{
 			name: "new elements",
@@ -50,9 +48,8 @@ func Test_compareMaps(t *testing.T) {
 				a: map[string]*string{},
 				b: map[string]*string{"k1": aws.String("v1")},
 			},
-			wantAdded:   map[string]*string{"k1": aws.String("v1")},
-			wantRemoved: nil,
-			wantUpdated: map[string]*string{},
+			wantAddedorUpdated: map[string]*string{"k1": aws.String("v1")},
+			wantRemoved:        nil,
 		},
 		{
 			name: "updated elements",
@@ -60,9 +57,8 @@ func Test_compareMaps(t *testing.T) {
 				a: map[string]*string{"k1": aws.String("v1"), "k2": aws.String("v2")},
 				b: map[string]*string{"k1": aws.String("v10"), "k2": aws.String("v20")},
 			},
-			wantAdded:   map[string]*string{},
-			wantRemoved: nil,
-			wantUpdated: map[string]*string{"k1": aws.String("v10"), "k2": aws.String("v20")},
+			wantAddedorUpdated: map[string]*string{"k1": aws.String("v10"), "k2": aws.String("v20")},
+			wantRemoved:        nil,
 		},
 		{
 			name: "removed elements",
@@ -70,9 +66,8 @@ func Test_compareMaps(t *testing.T) {
 				a: map[string]*string{"k1": aws.String("v1"), "k2": aws.String("v2")},
 				b: map[string]*string{"k1": aws.String("v1")},
 			},
-			wantAdded:   map[string]*string{},
-			wantRemoved: []string{"k2"},
-			wantUpdated: map[string]*string{},
+			wantAddedorUpdated: map[string]*string{},
+			wantRemoved:        []string{"k2"},
 		},
 		{
 			name: "added, updated and removed elements",
@@ -80,22 +75,18 @@ func Test_compareMaps(t *testing.T) {
 				a: map[string]*string{"k1": aws.String("v1"), "k2": aws.String("v2")},
 				b: map[string]*string{"k1": aws.String("v10"), "k3": aws.String("v3")},
 			},
-			wantAdded:   map[string]*string{"k3": aws.String("v3")},
-			wantRemoved: []string{"k2"},
-			wantUpdated: map[string]*string{"k1": aws.String("v10")},
+			wantAddedorUpdated: map[string]*string{"k3": aws.String("v3"), "k1": aws.String("v10")},
+			wantRemoved:        []string{"k2"},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotAdded, gotRemoved, gotUpdated := compareMaps(tt.args.a, tt.args.b)
-			if !reflect.DeepEqual(gotAdded, tt.wantAdded) {
-				t.Errorf("compareMaps() gotAdded = %v, want %v", gotAdded, tt.wantAdded)
+			gotAddedOrUpdated, gotRemoved := compareMaps(tt.args.a, tt.args.b)
+			if !reflect.DeepEqual(gotAddedOrUpdated, tt.wantAddedorUpdated) {
+				t.Errorf("compareMaps() gotAddedOrUpdated = %v, want %v", gotAddedOrUpdated, tt.wantAddedorUpdated)
 			}
 			if !reflect.DeepEqual(gotRemoved, tt.wantRemoved) {
 				t.Errorf("compareMaps() gotRemoved = %v, want %v", gotRemoved, tt.wantRemoved)
-			}
-			if !reflect.DeepEqual(gotUpdated, tt.wantUpdated) {
-				t.Errorf("compareMaps() gotUpdated = %v, want %v", gotUpdated, tt.wantUpdated)
 			}
 		})
 	}
