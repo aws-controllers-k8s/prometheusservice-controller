@@ -19,17 +19,16 @@ import time
 import pytest
 
 from acktest.k8s import resource as k8s
+from acktest.k8s import condition
+from acktest import tags as tags
 from acktest.resources import random_suffix_name
 from e2e import service_marker, CRD_GROUP, CRD_VERSION, load_prometheusservice_resource
 from e2e.replacement_values import REPLACEMENT_VALUES
 from e2e.bootstrap_resources import get_bootstrap_resources
-from e2e import condition
-
 
 RESOURCE_KIND = "Workspace"
 RESOURCE_PLURAL = "workspaces"
 
-CREATE_WAIT_AFTER_SECONDS = 30
 MODIFY_WAIT_AFTER_SECONDS = 10
 MAX_WAIT_FOR_SYNCED_MINUTES = 10
 
@@ -85,9 +84,7 @@ class TestWorkspace:
         # After the resource is synced, assert that workspace is active
         latest = self.get_workspace(prometheusservice_client, workspace_resource['status']['workspaceID'])
         assert latest is not None
-        print(latest, flush=True)
         assert latest['workspace']['status']['statusCode'] == 'ACTIVE'
-        print(latest, flush=True)
 
         # Before we update the workspace CR below, we need to check that the
         # workspace status field in the CR has been updated to active,
@@ -139,7 +136,8 @@ class TestWorkspace:
         latest = self.get_workspace(prometheusservice_client, workspace_resource['status']['workspaceID'])
         assert latest is not None
         assert latest['workspace']['alias'] == new_alias
-        assert latest['workspace']['tags'] == expected_tags
+
+        tags.assert_equal_without_ack_tags(latest['workspace']['tags'],expected_tags)
 
 
         # Next we update the tags again, but this time we try to remove all tags
@@ -162,7 +160,7 @@ class TestWorkspace:
         # After resource is synced again, assert that patches are reflected in the AWS resource
         latest = self.get_workspace(prometheusservice_client, workspace_resource['status']['workspaceID'])
         assert latest is not None
-        assert latest['workspace']['tags'] == expected_tags
+        tags.assert_equal_without_ack_tags((latest['workspace']['tags']), expected_tags)
 
 
         _, deleted = k8s.delete_custom_resource(workspace_ref)

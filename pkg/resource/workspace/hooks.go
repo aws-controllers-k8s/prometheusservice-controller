@@ -17,13 +17,14 @@ import (
 	"context"
 	"errors"
 
-	"github.com/aws-controllers-k8s/prometheusservice-controller/apis/v1alpha1"
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	ackcondition "github.com/aws-controllers-k8s/runtime/pkg/condition"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 	svcsdk "github.com/aws/aws-sdk-go/service/prometheusservice"
 	corev1 "k8s.io/api/core/v1"
+
+	svcapitypes "github.com/aws-controllers-k8s/prometheusservice-controller/apis/v1alpha1"
 )
 
 // workspaceCreating returns true if the supplied workspace is in the process
@@ -33,7 +34,7 @@ func workspaceCreating(r *resource) bool {
 		return false
 	}
 	ws := *r.ko.Status.Status.StatusCode
-	return ws == string(v1alpha1.WorkspaceStatusCode_CREATING)
+	return ws == string(svcapitypes.WorkspaceStatusCode_CREATING)
 }
 
 // workspaceCreating returns true if the supplied workspace is in an active state
@@ -42,7 +43,7 @@ func workspaceActive(r *resource) bool {
 		return false
 	}
 	ws := *r.ko.Status.Status.StatusCode
-	return ws == string(v1alpha1.WorkspaceStatusCode_ACTIVE)
+	return ws == string(svcapitypes.WorkspaceStatusCode_ACTIVE)
 }
 
 // customUpdateWorkspace patches each of the resource properties in the backend AWS
