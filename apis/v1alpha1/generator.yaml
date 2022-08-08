@@ -1,8 +1,21 @@
 ignore:
-  field_paths: null
+  field_paths:
+    - CreateWorkspaceInput.ClientToken
   operations: null
   resource_names:
-  - Workspace
   - RuleGroupsNamespace
   - AlertManagerDefinition
+resources:
+  Workspace:
+    fields:
+      Tags:
+        compare:
+          is_ignored: True
+    update_operation:
+      custom_method_name: customUpdateWorkspace
+    hooks:
+      delta_pre_compare:
+        code: customPreCompare(delta, a, b)
+      sdk_create_post_set_output:
+        template_path: hooks/workspace/sdk_create_post_set_output.go.tpl
 model_name: amp 
