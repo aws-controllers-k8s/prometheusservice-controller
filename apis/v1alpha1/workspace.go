@@ -53,6 +53,7 @@ type WorkspaceStatus struct {
 // Workspace is the Schema for the Workspaces API
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="ALIAS",type=string,priority=0,JSONPath=`.spec.alias`
 type Workspace struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
