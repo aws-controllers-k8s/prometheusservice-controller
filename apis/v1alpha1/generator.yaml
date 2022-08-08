@@ -8,6 +8,9 @@ ignore:
 resources:
   Workspace:
     fields:
+      alias:
+        print:
+          name: ALIAS
       Tags:
         compare:
           is_ignored: True
