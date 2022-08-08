@@ -165,3 +165,5 @@ class TestWorkspace:
 
         _, deleted = k8s.delete_custom_resource(workspace_ref)
         assert deleted
+        workspace = self.get_workspace(prometheusservice_client, workspace_resource['status']['workspaceID'])
+        assert workspace is None
