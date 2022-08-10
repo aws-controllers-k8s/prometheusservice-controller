@@ -1,0 +1,22 @@
+apiVersion: prometheusservice.services.k8s.aws/v1alpha1
+kind: RuleGroupsNamespace
+metadata:
+  namespace: default
+  name: $RESOURCE_NAME
+spec:
+  workspaceID: $WORKSPACE_ID
+  name: $RULE_GROUPS_NAME
+  configuration: |
+    groups:
+    - name: test
+      rules:
+      - record: metric:recording_rule
+        expr: avg(rate(container_cpu_usage_seconds_total[5m]))
+    - name: alert-test
+      rules:
+      - alert: metric:alerting_rule
+        expr: avg(rate(container_cpu_usage_seconds_total[5m])) > 0
+        for: 2m
+  tags:
+    k1: v1
+    k2: v2

@@ -34,20 +34,53 @@ type AlertManagerDefinitionDescription struct {
 	ModifiedAt *metav1.Time `json:"modifiedAt,omitempty"`
 }
 
+// Represents the status of a definition.
+type AlertManagerDefinitionStatus struct {
+	StatusReason *string `json:"statusReason,omitempty"`
+}
+
 // Represents a description of the rule groups namespace.
 type RuleGroupsNamespaceDescription struct {
-	CreatedAt  *metav1.Time `json:"createdAt,omitempty"`
+	// An ARN identifying a rule groups namespace.
+	ARN       *string      `json:"arn,omitempty"`
+	CreatedAt *metav1.Time `json:"createdAt,omitempty"`
+	// The rule groups namespace data.
+	Data       []byte       `json:"data,omitempty"`
 	ModifiedAt *metav1.Time `json:"modifiedAt,omitempty"`
+	// The namespace name that the rule group belong to.
+	Name *string `json:"name,omitempty"`
+	// Represents the status of a namespace.
+	Status *RuleGroupsNamespaceStatus_SDK `json:"status,omitempty"`
 	// The list of tags assigned to the resource.
 	Tags map[string]*string `json:"tags,omitempty"`
 }
 
+// Represents the status of a namespace.
+type RuleGroupsNamespaceStatus_SDK struct {
+	// State of a namespace.
+	StatusCode   *string `json:"statusCode,omitempty"`
+	StatusReason *string `json:"statusReason,omitempty"`
+}
+
 // Represents a summary of the rule groups namespace.
 type RuleGroupsNamespaceSummary struct {
+	// An ARN identifying a rule groups namespace.
+	ARN        *string      `json:"arn,omitempty"`
 	CreatedAt  *metav1.Time `json:"createdAt,omitempty"`
 	ModifiedAt *metav1.Time `json:"modifiedAt,omitempty"`
+	// The namespace name that the rule group belong to.
+	Name *string `json:"name,omitempty"`
+	// Represents the status of a namespace.
+	Status *RuleGroupsNamespaceStatus_SDK `json:"status,omitempty"`
 	// The list of tags assigned to the resource.
 	Tags map[string]*string `json:"tags,omitempty"`
+}
+
+// Stores information about a field passed inside a request that resulted in
+// an exception.
+type ValidationExceptionField struct {
+	Message *string `json:"message,omitempty"`
+	Name    *string `json:"name,omitempty"`
 }
 
 // Represents the properties of a workspace.
