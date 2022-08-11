@@ -1,9 +1,10 @@
 ignore:
   field_paths:
     - CreateWorkspaceInput.ClientToken
+    - CreateRuleGroupsNamespaceInput.ClientToken
+    - CreateRuleGroupsNamespaceInput.Data
   operations: null
   resource_names:
-  - RuleGroupsNamespace
   - AlertManagerDefinition
 resources:
   Workspace:
@@ -21,4 +22,41 @@ resources:
         code: customPreCompare(delta, a, b)
       sdk_create_post_set_output:
         template_path: hooks/workspace/sdk_create_post_set_output.go.tpl
+  RuleGroupsNamespace:
+    shortNames:
+      - rgn
+    fields:
+      Name:
+        is_immutable: true
+      WorkspaceID:
+        is_immutable: true
+        print:
+          name: WORKSPACE-ID      
+      Tags:
+        compare:
+          is_ignored: True
+      # The data field is of type byte because the API expects a base64 string of the rule groups yaml configuration.
+      # However, instead of the user providing a base64 encoding, they should provide a regular (multiline) 
+      # string field and have the controller convert it to base64. This will make the CR's easier to use. 
+      # Hence, we create a new field that takes in a string for the configuration. The user will use the `configuration` 
+      # field instead of the `data` field to input the desired rule groups config. We have to manually handle 
+      # the create/read/update for the new field and also the `data` field which is not going to be 
+      # user facing.
+      configuration:
+        type: "string"
+        is_required: True
+    update_operation:
+      custom_method_name: customUpdateRuleGroupsNamespace
+    hooks:
+        delta_pre_compare:
+          code: customPreCompare(delta, a, b)
+        sdk_create_post_build_request:
+          template_path: hooks/rule_groups_namespace/sdk_create_post_build_request.go.tpl
+        sdk_create_post_set_output:
+          template_path: hooks/rule_groups_namespace/sdk_create_post_set_output.go.tpl
+        sdk_read_one_pre_set_output:
+          template_path: hooks/rule_groups_namespace/sdk_read_one_pre_set_output.go.tpl
+    exceptions:
+      terminal_codes:
+        - ValidationException
 model_name: amp 

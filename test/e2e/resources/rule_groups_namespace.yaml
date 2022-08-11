@@ -1,0 +1,13 @@
+apiVersion: prometheusservice.services.k8s.aws/v1alpha1
+kind: RuleGroupsNamespace
+metadata:
+  namespace: default
+  name: $RESOURCE_NAME
+spec:
+  workspaceID: $WORKSPACE_ID
+  name: $RULE_GROUPS_NAME
+  configuration: |
+    $CONFIGURATION
+  tags:
+    k1: v1
+    k2: v2
