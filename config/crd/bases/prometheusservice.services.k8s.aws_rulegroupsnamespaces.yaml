@@ -41,10 +41,6 @@ spec:
             properties:
               configuration:
                 type: string
-              data:
-                description: The namespace data that define the rule groups.
-                format: byte
-                type: string
               name:
                 description: The rule groups namespace name.
                 type: string
@@ -58,6 +54,7 @@ spec:
                   namespace.
                 type: string
             required:
+            - configuration
             - name
             - workspaceID
             type: object

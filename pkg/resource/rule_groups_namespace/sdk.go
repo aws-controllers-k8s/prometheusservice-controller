@@ -180,17 +180,16 @@ func (rm *resourceManager) sdkCreate(
 	defer func() {
 		exit(err)
 	}()
+	input, err := rm.newCreateRequestPayload(ctx, desired)
+	if err != nil {
+		return nil, err
+	}
 
 	// Convert the string version of the configuration to a byte slice
 	// because the API expects a base64 encoding. The conversion to base64
 	// is handled automatically by k8s.
 	if desired.ko.Spec.Configuration != nil {
-		desired.ko.Spec.Data = []byte(*desired.ko.Spec.Configuration)
-	}
-
-	input, err := rm.newCreateRequestPayload(ctx, desired)
-	if err != nil {
-		return nil, err
+		input.Data = []byte(*desired.ko.Spec.Configuration)
 	}
 
 	var resp *svcsdk.CreateRuleGroupsNamespaceOutput
@@ -241,7 +240,6 @@ func (rm *resourceManager) sdkCreate(
 	}
 
 	rm.setStatusDefaults(ko)
-	ko.Spec.Data = nil
 
 	// We expect the rule group to be in 'creating' status since we just
 	// issued the call to create it, but I suppose it doesn't hurt to check
@@ -264,20 +262,17 @@ func (rm *resourceManager) newCreateRequestPayload(
 ) (*svcsdk.CreateRuleGroupsNamespaceInput, error) {
 	res := &svcsdk.CreateRuleGroupsNamespaceInput{}
 
-	if r.ko.Spec.Data != nil {
-		res.SetData(r.ko.Spec.Data)
-	}
 	if r.ko.Spec.Name != nil {
 		res.SetName(*r.ko.Spec.Name)
 	}
 	if r.ko.Spec.Tags != nil {
-		f2 := map[string]*string{}
-		for f2key, f2valiter := range r.ko.Spec.Tags {
-			var f2val string
-			f2val = *f2valiter
-			f2[f2key] = &f2val
+		f1 := map[string]*string{}
+		for f1key, f1valiter := range r.ko.Spec.Tags {
+			var f1val string
+			f1val = *f1valiter
+			f1[f1key] = &f1val
 		}
-		res.SetTags(f2)
+		res.SetTags(f1)
 	}
 	if r.ko.Spec.WorkspaceID != nil {
 		res.SetWorkspaceId(*r.ko.Spec.WorkspaceID)

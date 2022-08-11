@@ -22,8 +22,6 @@ import (
 
 // RuleGroupsNamespaceSpec defines the desired state of RuleGroupsNamespace.
 type RuleGroupsNamespaceSpec struct {
-	// The namespace data that define the rule groups.
-	Data []byte `json:"data,omitempty"`
 	// The rule groups namespace name.
 	// +kubebuilder:validation:Required
 	Name *string `json:"name"`
@@ -33,7 +31,8 @@ type RuleGroupsNamespaceSpec struct {
 	// +kubebuilder:validation:Required
 	WorkspaceID *string `json:"workspaceID"`
 
-	Configuration *string `json:"configuration,omitempty"`
+	// +kubebuilder:validation:Required
+	Configuration *string `json:"configuration"`
 }
 
 // RuleGroupsNamespaceStatus defines the observed state of RuleGroupsNamespace

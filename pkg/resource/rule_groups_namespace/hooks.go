@@ -156,9 +156,7 @@ func (rm *resourceManager) customUpdateRuleGroupsNamespace(
 		if err != nil {
 			return nil, err
 		}
-		if updatedResource != nil {
-			return updatedResource, nil
-		}
+		return updatedResource, nil
 	}
 
 	return &resource{ko}, nil
@@ -223,17 +221,18 @@ func (rm *resourceManager) updateRuleGroupsNamespace(
 	exit := rlog.Trace("rm.updateRuleGroupsNamespace")
 	defer exit(err)
 
+	var configurationBytes []byte = nil
 	// Convert the string version of the configuration to a byte slice
 	// because the API expects a base64 encoding. The conversion to base64
 	// is handled automatically by k8s.
 	if desired.ko.Spec.Configuration != nil {
-		desired.ko.Spec.Data = []byte(*desired.ko.Spec.Configuration)
+		configurationBytes = []byte(*desired.ko.Spec.Configuration)
 	}
 
 	input := &svcsdk.PutRuleGroupsNamespaceInput{
 		WorkspaceId: desired.ko.Spec.WorkspaceID,
 		Name:        desired.ko.Spec.Name,
-		Data:        desired.ko.Spec.Data,
+		Data:        configurationBytes,
 	}
 
 	resp, err := rm.sdkapi.PutRuleGroupsNamespaceWithContext(ctx, input)
@@ -241,9 +240,6 @@ func (rm *resourceManager) updateRuleGroupsNamespace(
 	if err != nil {
 		return nil, err
 	}
-
-	// After the call, reset the Data field since it is not user facing.
-	desired.ko.Spec.Data = nil
 
 	// Merge in the information we read from the API call above to the copy of
 	// the original Kubernetes object we passed to the function

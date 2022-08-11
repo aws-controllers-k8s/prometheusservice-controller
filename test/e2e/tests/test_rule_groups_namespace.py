@@ -87,10 +87,12 @@ class TestRuleGroupsNamespace:
             return None
 
 
-    def assert_server_side_status(self, result_from_server, status):
-        assert 'status' in result_from_server['ruleGroupsNamespace']
-        assert 'statusCode' in result_from_server['ruleGroupsNamespace']['status']
-        assert result_from_server['ruleGroupsNamespace']['status']['statusCode'] == status
+    def get_server_side_status(self, result_from_server):
+        if  'status' not in result_from_server['ruleGroupsNamespace'] or \
+            'statusCode' not in result_from_server['ruleGroupsNamespace']['status']:
+            return None
+        
+        return result_from_server['ruleGroupsNamespace']['status']['statusCode']
 
 
     def test_successful_crud_rule_groups_namespace(self, prometheusservice_client, workspace_resource):
@@ -178,7 +180,7 @@ class TestRuleGroupsNamespace:
         assert latest['ruleGroupsNamespace']['name'] == resource_name
         assert latest['ruleGroupsNamespace']['tags']['k1'] == 'v1'
         assert latest['ruleGroupsNamespace']['tags']['k2'] == 'v2'
-        self.assert_server_side_status(latest, 'ACTIVE')
+        assert self.get_server_side_status(latest) == 'ACTIVE'
 
         # First, we will perform an update that includes changing the configuration. This results  
         # in an update that is performed asynchronously. When the call is made, the status is first 
@@ -229,7 +231,7 @@ class TestRuleGroupsNamespace:
         assert 'data' in latest['ruleGroupsNamespace']
         assert latest['ruleGroupsNamespace']['data'].decode('utf-8') == updated_configuration_str
         tags.assert_equal_without_ack_tags(latest['ruleGroupsNamespace']['tags'],expected_tags)
-        self.assert_server_side_status(latest, 'ACTIVE')
+        assert self.get_server_side_status(latest) == 'ACTIVE'
 
         # When performing an update to anything except the configuration, the update should
         # be instant. If successful, the status should never change from ACTIVE to anything else. 
@@ -252,7 +254,7 @@ class TestRuleGroupsNamespace:
         latest = self.get_rule_groups_namespace(prometheusservice_client, workspace_id, resource_name)
         assert latest is not None
         tags.assert_equal_without_ack_tags((latest['ruleGroupsNamespace']['tags']), expected_tags)
-        self.assert_server_side_status(latest, 'ACTIVE')
+        assert self.get_server_side_status(latest) == 'ACTIVE'
 
 
         # Delete the resource
@@ -261,7 +263,7 @@ class TestRuleGroupsNamespace:
         # Deletion can take some time. First the status will be in `Deleting` state and eventually should
         # be deleted. 
         latest = self.get_rule_groups_namespace(prometheusservice_client, workspace_id, resource_name)
-        self.assert_server_side_status(latest, 'DELETING')
+        assert self.get_server_side_status(latest) == 'DELETING'
         time.sleep(DELETE_WAIT_AFTER_SECONDS)
         latest = self.get_rule_groups_namespace(prometheusservice_client, workspace_id, resource_name)
         assert latest is None
