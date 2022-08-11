@@ -18,7 +18,11 @@ spec:
     singular: rulegroupsnamespace
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - jsonPath: .spec.workspaceID
+      name: WORKSPACE-ID
+      type: string
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: RuleGroupsNamespace is the Schema for the RuleGroupsNamespaces

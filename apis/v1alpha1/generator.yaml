@@ -29,7 +29,9 @@ resources:
       Name:
         is_immutable: true
       WorkspaceID:
-        is_immutable: true      
+        is_immutable: true
+        print:
+          name: WORKSPACE-ID      
       Tags:
         compare:
           is_ignored: True

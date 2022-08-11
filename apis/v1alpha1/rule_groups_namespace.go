@@ -56,6 +56,7 @@ type RuleGroupsNamespaceStatus struct {
 // RuleGroupsNamespace is the Schema for the RuleGroupsNamespaces API
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="WORKSPACE-ID",type=string,priority=0,JSONPath=`.spec.workspaceID`
 // +kubebuilder:resource:shortName=rgn
 type RuleGroupsNamespace struct {
 	metav1.TypeMeta   `json:",inline"`
