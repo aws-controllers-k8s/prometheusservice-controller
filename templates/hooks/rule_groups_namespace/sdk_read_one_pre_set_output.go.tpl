@@ -6,9 +6,7 @@
         // Convert the base64 byte array to a human-readable string
         ruleGroupsNamespaceDataString := string(resp.RuleGroupsNamespace.Data)
         ko.Spec.Configuration = &ruleGroupsNamespaceDataString
-        if err != nil {
-            return nil, err
-        }
+
         // Remove the data field as it is not user facing
         resp.RuleGroupsNamespace.Data = nil
     } else {

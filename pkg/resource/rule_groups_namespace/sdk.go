@@ -94,9 +94,7 @@ func (rm *resourceManager) sdkFind(
 		// Convert the base64 byte array to a human-readable string
 		ruleGroupsNamespaceDataString := string(resp.RuleGroupsNamespace.Data)
 		ko.Spec.Configuration = &ruleGroupsNamespaceDataString
-		if err != nil {
-			return nil, err
-		}
+
 		// Remove the data field as it is not user facing
 		resp.RuleGroupsNamespace.Data = nil
 	} else {
@@ -245,10 +243,10 @@ func (rm *resourceManager) sdkCreate(
 	rm.setStatusDefaults(ko)
 	ko.Spec.Data = nil
 
-	// We expect the rule groups to be in 'creating' status since we just
+	// We expect the rule group to be in 'creating' status since we just
 	// issued the call to create it, but I suppose it doesn't hurt to check
 	// here.
-	if ruleGroupsCreating(&resource{ko}) {
+	if ruleGroupsNamespaceCreating(&resource{ko}) {
 		// Setting resource synced condition to false will trigger a requeue of
 		// the resource. No need to return a requeue error here.
 		ackcondition.SetSynced(&resource{ko}, corev1.ConditionFalse, nil, nil)
@@ -296,7 +294,7 @@ func (rm *resourceManager) sdkUpdate(
 	latest *resource,
 	delta *ackcompare.Delta,
 ) (*resource, error) {
-	return rm.customUpdateRuleGroups(ctx, desired, latest, delta)
+	return rm.customUpdateRuleGroupsNamespace(ctx, desired, latest, delta)
 }
 
 // sdkDelete deletes the supplied resource in the backend AWS service API

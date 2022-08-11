@@ -23,8 +23,7 @@ resources:
         template_path: hooks/workspace/sdk_create_post_set_output.go.tpl
   RuleGroupsNamespace:
     shortNames:
-      - rulegroup
-      - rulegroups
+      - rgn
     fields:
       Name:
         is_required: true
@@ -54,7 +53,7 @@ resources:
       configuration:
         type: "string"
     update_operation:
-      custom_method_name: customUpdateRuleGroups
+      custom_method_name: customUpdateRuleGroupsNamespace
     hooks:
         delta_pre_compare:
           code: customPreCompare(delta, a, b)

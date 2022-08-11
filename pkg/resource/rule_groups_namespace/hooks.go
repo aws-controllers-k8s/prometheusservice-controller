@@ -30,9 +30,9 @@ import (
 )
 
 var (
-	ErrRuleGroupsCreating = errors.New("Rule Groups Namespace is in 'CREATING' state, cannot be modified or deleted")
-	ErrRuleGroupsDeleting = errors.New("Rule Groups Namespace is in 'DELETING' state, cannot be modified or deleted")
-	ErrRuleGroupsUpdating = errors.New("Rule Groups Namespace is in 'UPDATING' state, cannot be modified or deleted")
+	ErrRuleGroupsNamespaceCreating = errors.New("Rule Groups Namespace is in 'CREATING' state, cannot be modified or deleted")
+	ErrRuleGroupsNamespaceDeleting = errors.New("Rule Groups Namespace is in 'DELETING' state, cannot be modified or deleted")
+	ErrRuleGroupsNamespaceUpdating = errors.New("Rule Groups Namespace is in 'UPDATING' state, cannot be modified or deleted")
 )
 
 var (
@@ -46,22 +46,22 @@ var (
 
 var (
 	requeueWaitWhileDeleting = ackrequeue.NeededAfter(
-		ErrRuleGroupsDeleting,
+		ErrRuleGroupsNamespaceDeleting,
 		10*time.Second,
 	)
 	requeueWaitWhileCreating = ackrequeue.NeededAfter(
-		ErrRuleGroupsCreating,
+		ErrRuleGroupsNamespaceCreating,
 		15*time.Second,
 	)
 	requeueWaitWhileUpdating = ackrequeue.NeededAfter(
-		ErrRuleGroupsUpdating,
+		ErrRuleGroupsNamespaceUpdating,
 		10*time.Second,
 	)
 )
 
-// ruleGroupsCreating returns true if the supplied rule groups is in the process
+// ruleGroupsNamespaceCreating returns true if the supplied rule groups is in the process
 // of being created
-func ruleGroupsCreating(r *resource) bool {
+func ruleGroupsNamespaceCreating(r *resource) bool {
 	if r.ko.Status.Status == nil {
 		return false
 	}
@@ -69,9 +69,9 @@ func ruleGroupsCreating(r *resource) bool {
 	return ws == string(svcapitypes.RuleGroupsNamespaceStatusCode_CREATING)
 }
 
-// ruleGroupsCreating returns true if the supplied rule groups is in the process
+// ruleGroupsNamespaceDeleting returns true if the supplied rule groups is in the process
 // of being deleted
-func ruleGroupsDeleting(r *resource) bool {
+func ruleGroupsNamespaceDeleting(r *resource) bool {
 	if r.ko.Status.Status == nil {
 		return false
 	}
@@ -79,9 +79,9 @@ func ruleGroupsDeleting(r *resource) bool {
 	return ws == string(svcapitypes.RuleGroupsNamespaceStatusCode_DELETING)
 }
 
-// ruleGroupsCreating returns true if the supplied rule groups is in the process
+// ruleGroupsNamespaceUpdating returns true if the supplied rule groups is in the process
 // of being updated
-func ruleGroupsUpdating(r *resource) bool {
+func ruleGroupsNamespaceUpdating(r *resource) bool {
 	if r.ko.Status.Status == nil {
 		return false
 	}
@@ -89,9 +89,9 @@ func ruleGroupsUpdating(r *resource) bool {
 	return ws == string(svcapitypes.RuleGroupsNamespaceStatusCode_UPDATING)
 }
 
-// ruleGroupsHasTerminalStatus returns whether the supplied rule groups namespace is in a
+// ruleGroupsNamespaceHasTerminalStatus returns whether the supplied rule groups namespace is in a
 // terminal state
-func ruleGroupsHasTerminalStatus(r *resource) bool {
+func ruleGroupsNamespaceHasTerminalStatus(r *resource) bool {
 	if r.ko.Status.Status.StatusCode == nil {
 		return false
 	}
@@ -104,9 +104,9 @@ func ruleGroupsHasTerminalStatus(r *resource) bool {
 	return false
 }
 
-// customUpdateRuleGroups patches each of the resource properties in the backend AWS
+// customUpdateRuleGroupsNamespace patches each of the resource properties in the backend AWS
 // service API and returns a new resource with updated fields.
-func (rm *resourceManager) customUpdateRuleGroups(
+func (rm *resourceManager) customUpdateRuleGroupsNamespace(
 	ctx context.Context,
 	desired *resource,
 	latest *resource,
@@ -114,22 +114,25 @@ func (rm *resourceManager) customUpdateRuleGroups(
 ) (*resource, error) {
 	var err error
 	rlog := ackrtlog.FromContext(ctx)
-	exit := rlog.Trace("rm.customUpdateRuleGroups")
+	exit := rlog.Trace("rm.customUpdateRuleGroupsNamespace")
 	defer exit(err)
 
 	// Check if the state is being currently created, updated or deleted.
 	// If it is, then requeue because we can't update while it is in those states.
-	if ruleGroupsCreating(latest) {
+	var sc string = ""
+	if latest.ko.Status.Status != nil {
+		sc = *latest.ko.Status.Status.StatusCode
+	}
+	switch sc {
+	case string(svcapitypes.RuleGroupsNamespaceStatusCode_DELETING):
+		return desired, requeueWaitWhileDeleting
+	case string(svcapitypes.RuleGroupsNamespaceStatusCode_UPDATING):
+		return desired, requeueWaitWhileUpdating
+	case string(svcapitypes.RuleGroupsNamespaceStatusCode_CREATING):
 		return desired, requeueWaitWhileCreating
 	}
-	if ruleGroupsUpdating(latest) {
-		return desired, requeueWaitWhileUpdating
-	}
-	if ruleGroupsDeleting(latest) {
-		return desired, requeueWaitWhileDeleting
-	}
 
-	if ruleGroupsHasTerminalStatus(latest) {
+	if ruleGroupsNamespaceHasTerminalStatus(latest) {
 		msg := "Rule Groups Namespace is in '" + *latest.ko.Status.Status.StatusCode + "' status"
 		ackcondition.SetTerminal(desired, corev1.ConditionTrue, &msg, nil)
 		ackcondition.SetSynced(desired, corev1.ConditionTrue, nil, nil)
@@ -142,7 +145,7 @@ func (rm *resourceManager) customUpdateRuleGroups(
 
 	rm.setStatusDefaults(ko)
 	if delta.DifferentAt("Spec.Tags") {
-		err = rm.updateRuleGroupsTags(ctx, latest, desired)
+		err = rm.updateRuleGroupsNamespaceTags(ctx, latest, desired)
 		if err != nil {
 			return nil, err
 		}
@@ -161,16 +164,16 @@ func (rm *resourceManager) customUpdateRuleGroups(
 	return &resource{ko}, nil
 }
 
-// updateRuleGroupsTags uses TagResource and UntagResource to add, remove and update
+// updateRuleGroupsNamespaceTags uses TagResource and UntagResource to add, remove and update
 // rule groups namespace tags.
-func (rm *resourceManager) updateRuleGroupsTags(
+func (rm *resourceManager) updateRuleGroupsNamespaceTags(
 	ctx context.Context,
 	latest *resource,
 	desired *resource,
 ) error {
 	var err error
 	rlog := ackrtlog.FromContext(ctx)
-	exit := rlog.Trace("rm.updateRuleGroupsTags")
+	exit := rlog.Trace("rm.updateRuleGroupsNamespaceTags")
 	defer exit(err)
 
 	addedOrUpdated, removed := compareMaps(latest.ko.Spec.Tags, desired.ko.Spec.Tags)
@@ -286,7 +289,7 @@ func (rm *resourceManager) updateRuleGroupsNamespace(
 	// Some updates might be instant and the resource will remain in an active state.
 	// While other updates, might take a while to update and the resource will be in an `UPDATING`
 	// state. If this is the case, then we want to requeue until the resource is done updating.
-	if ruleGroupsUpdating(&resource{ko}) {
+	if ruleGroupsNamespaceUpdating(&resource{ko}) {
 		// Setting resource synced condition to false will trigger a requeue of
 		// the resource. No need to return a requeue error here.
 		ackcondition.SetSynced(&resource{ko}, corev1.ConditionFalse, nil, nil)

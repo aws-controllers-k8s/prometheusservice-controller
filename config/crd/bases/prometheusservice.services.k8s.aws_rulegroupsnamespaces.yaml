@@ -14,8 +14,7 @@ spec:
     listKind: RuleGroupsNamespaceList
     plural: rulegroupsnamespaces
     shortNames:
-    - rulegroup
-    - rulegroups
+    - rgn
     singular: rulegroupsnamespace
   scope: Namespaced
   versions:

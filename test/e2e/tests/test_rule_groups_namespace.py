@@ -17,6 +17,7 @@
 import logging
 import time
 import pytest
+import yaml
 
 from acktest.k8s import resource as k8s
 from acktest.k8s import condition
@@ -36,34 +37,43 @@ UPDATE_WAIT_AFTER_SECONDS = 5
 DELETE_WAIT_AFTER_SECONDS = 60
 CREATE_WAIT_AFTER_SECONDS = 90
 
+@pytest.fixture(scope="module")
+def workspace_resource():
+        resource_name = random_suffix_name("amp-workspace", 24)
+        resources = get_bootstrap_resources()
+
+        replacements = REPLACEMENT_VALUES.copy()
+        replacements['WORKSPACE_ALIAS'] = resource_name
+
+        resource_data = load_prometheusservice_resource(
+            "workspace",
+            additional_replacements=replacements,
+        )
+        
+        workspace_ref = k8s.CustomResourceReference(
+            CRD_GROUP, CRD_VERSION, "workspaces",
+            resource_name, namespace="default",
+        )
+
+        # Create workspace
+        k8s.create_custom_resource(workspace_ref, resource_data)
+        workspace_resource = k8s.wait_resource_consumed_by_controller(workspace_ref)
+
+        assert workspace_resource is not None
+        assert k8s.get_resource_exists(workspace_ref)
+
+        assert k8s.wait_on_condition(workspace_ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert 'workspaceID' in workspace_resource['status']
+
+        yield (workspace_ref, workspace_resource)
+
+        _, deleted = k8s.delete_custom_resource(workspace_ref)
+        assert deleted
+
 
 @service_marker
 @pytest.mark.canary
 class TestRuleGroupsNamespace:
-
-    def create_workspace(self, prometheusservice_client, workspace_alias) -> str:
-        try:
-            resp = prometheusservice_client.create_workspace(
-                alias=workspace_alias
-            )
-            workspace_id = resp['workspaceId']
-
-            return workspace_id
-
-        except Exception as e:
-            logging.debug(e)
-            return None
-
-    def delete_workspace(self, prometheusservice_client, workspace_id):
-        try:
-            response = prometheusservice_client.delete_workspace(
-                workspaceId=workspace_id
-            )
-            return response
-        except Exception as e:
-            logging.debug(e)
-            return None
-
     def get_rule_groups_namespace(self, prometheusservice_client, workspace_id: str, name: str) -> dict:
         try:
             resp = prometheusservice_client.describe_rule_groups_namespace(
@@ -83,31 +93,33 @@ class TestRuleGroupsNamespace:
         assert result_from_server['ruleGroupsNamespace']['status']['statusCode'] == status
 
 
-    def test_successful_crud_rule_groups_namespace(self, prometheusservice_client):
-        workspace_alias = random_suffix_name("amp-workspace", 24) 
+    def test_successful_crud_rule_groups_namespace(self, prometheusservice_client, workspace_resource):
+        
         resource_name = random_suffix_name("rule-groups-namespace", 30)
 
         # Create the workspace where the rule groups will be stored. 
-        workspace_id = self.create_workspace(prometheusservice_client, workspace_alias)
+        (_, workspace_res) = workspace_resource
+        workspace_id = workspace_res['status']['workspaceID']
 
-        # Below is the rule groups configuration that is part of the yaml resource file
-        expected_rule_group = '''\
-groups:
-- name: test
-  rules:
-  - record: metric:recording_rule
-    expr: avg(rate(container_cpu_usage_seconds_total[5m]))
-- name: alert-test
-  rules:
-  - alert: metric:alerting_rule
-    expr: avg(rate(container_cpu_usage_seconds_total[5m])) > 0
-    for: 2m
-'''
 
+        # First load the yaml file that is for the configuration that will be used within the resource configuration
+        config_replacements = REPLACEMENT_VALUES.copy()
+        config_replacements['RULE_NAME'] = "test-rule"
+        configuration_data = load_prometheusservice_resource(
+            "configuration_data",
+            additional_replacements=config_replacements,
+        )
+        # Convert the configuration to a string
+        configuration_str = str(yaml.dump(configuration_data))
+        # For replacing the value is the main YAML file, we need to indent the configuration 
+        configuration_str_indented = configuration_str.replace('\n', '\n    ')
+
+        # Load the resource
         replacements = REPLACEMENT_VALUES.copy()
         replacements['WORKSPACE_ID'] = workspace_id
         replacements['RESOURCE_NAME'] = resource_name
         replacements['RULE_GROUPS_NAME'] = resource_name
+        replacements['CONFIGURATION'] = configuration_str_indented
 
         resource_data = load_prometheusservice_resource(
             "rule_groups_namespace",
@@ -132,7 +144,7 @@ groups:
         assert resource['spec'] is not None
         assert 'workspaceID' in resource['spec']
         assert resource['spec']['workspaceID'] == workspace_id
-        assert resource['spec']['configuration'] == expected_rule_group
+        assert resource['spec']['configuration'] == configuration_str
         condition.assert_not_synced(rule_ref)
 
 
@@ -161,7 +173,7 @@ groups:
         assert latest is not None
         assert latest['ruleGroupsNamespace'] is not None
         assert 'data' in latest['ruleGroupsNamespace']
-        assert latest['ruleGroupsNamespace']['data'].decode('utf-8') == expected_rule_group
+        assert latest['ruleGroupsNamespace']['data'].decode('utf-8') == configuration_str
         assert 'name' in latest['ruleGroupsNamespace']
         assert latest['ruleGroupsNamespace']['name'] == resource_name
         assert latest['ruleGroupsNamespace']['tags']['k1'] == 'v1'
@@ -171,18 +183,16 @@ groups:
         # First, we will perform an update that includes changing the configuration. This results  
         # in an update that is performed asynchronously. When the call is made, the status is first 
         # updated to `UPDATING` and then should resync until `ACTIVE`.
-        updated_rule_group = '''\
-groups:
-- name: test
-  rules:
-  - record: metric:recording_rule
-    expr: avg(rate(container_cpu_usage_seconds_total[5m]))
-- name: alert-updated
-  rules:
-  - alert: metric:alerting_rule
-    expr: avg(rate(container_cpu_usage_seconds_total[5m])) > 0
-    for: 10m
-'''
+
+        # We will use the same configuration but change one of the rule names
+        config_replacements['RULE_NAME'] = "new-test-rule"
+        configuration_data = load_prometheusservice_resource(
+            "configuration_data",
+            additional_replacements=config_replacements,
+        )
+        # Convert the configuration to a string
+        updated_configuration_str = str(yaml.dump(configuration_data))
+
 
         tag_update = {
             "k1": "v1_updated",
@@ -196,7 +206,7 @@ groups:
         }
 
         updates = {
-            "spec": {"configuration": updated_rule_group, "tags": tag_update},
+            "spec": {"configuration": updated_configuration_str, "tags": tag_update},
         }
 
         k8s.patch_custom_resource(rule_ref, updates)
@@ -217,7 +227,7 @@ groups:
         assert latest is not None
         assert latest['ruleGroupsNamespace'] is not None
         assert 'data' in latest['ruleGroupsNamespace']
-        assert latest['ruleGroupsNamespace']['data'].decode('utf-8') == updated_rule_group
+        assert latest['ruleGroupsNamespace']['data'].decode('utf-8') == updated_configuration_str
         tags.assert_equal_without_ack_tags(latest['ruleGroupsNamespace']['tags'],expected_tags)
         self.assert_server_side_status(latest, 'ACTIVE')
 
@@ -255,24 +265,34 @@ groups:
         time.sleep(DELETE_WAIT_AFTER_SECONDS)
         latest = self.get_rule_groups_namespace(prometheusservice_client, workspace_id, resource_name)
         assert latest is None
-
-        # Clean-up the workspace used for the test.  
-        self.delete_workspace(prometheusservice_client, workspace_id)
-
     
-    def test_creating_two_namespaces_with_same_name(self, prometheusservice_client):
+    def test_creating_two_namespaces_with_same_name(self, prometheusservice_client, workspace_resource):
         # The resource does not allow for two rule groups namespaces to have the same name.
         # If two are created with the same name, the second resource should result in an error. 
-        workspace_alias = random_suffix_name("amp-workspace", 24) 
         resource_name = random_suffix_name("rule-groups-namespace", 30)
 
         # Create the workspace where the rule groups will be stored. 
-        workspace_id = self.create_workspace(prometheusservice_client, workspace_alias)
+        # Create the workspace where the rule groups will be stored. 
+        (_, workspace_res) = workspace_resource
+        workspace_id = workspace_res['status']['workspaceID']
+
+        # First, load the yaml file that is for the configuration
+        config_replacements = REPLACEMENT_VALUES.copy()
+        config_replacements['RULE_NAME'] = "test-rule"
+        configuration_data = load_prometheusservice_resource(
+            "configuration_data",
+            additional_replacements=config_replacements,
+        )
+        # Convert the configuration to a string
+        configuration_str = str(yaml.dump(configuration_data))
+        # For replacing the value is the main YAML file, we need to indent the configuration 
+        configuration_str_indented = configuration_str.replace('\n', '\n    ')
 
         replacements = REPLACEMENT_VALUES.copy()
         replacements['WORKSPACE_ID'] = workspace_id
         replacements['RESOURCE_NAME'] = resource_name
         replacements['RULE_GROUPS_NAME'] = resource_name
+        replacements['CONFIGURATION'] = configuration_str_indented
 
         resource_data = load_prometheusservice_resource(
             "rule_groups_namespace",
@@ -337,6 +357,3 @@ groups:
 
         _, deleted = k8s.delete_custom_resource(rule_ref_2)
         assert deleted
-
-        # Clean-up the workspace used for the test.  
-        self.delete_workspace(prometheusservice_client, workspace_id)
