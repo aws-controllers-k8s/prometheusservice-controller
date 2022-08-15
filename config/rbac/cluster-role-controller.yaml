@@ -35,6 +35,26 @@ rules:
 - apiGroups:
   - prometheusservice.services.k8s.aws
   resources:
+  - alertmanagerdefinitions
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - prometheusservice.services.k8s.aws
+  resources:
+  - alertmanagerdefinitions/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - prometheusservice.services.k8s.aws
+  resources:
   - rulegroupsnamespaces
   verbs:
   - create

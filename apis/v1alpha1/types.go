@@ -30,12 +30,18 @@ var (
 
 // Represents the properties of an alert manager definition.
 type AlertManagerDefinitionDescription struct {
-	CreatedAt  *metav1.Time `json:"createdAt,omitempty"`
+	CreatedAt *metav1.Time `json:"createdAt,omitempty"`
+	// The alert manager definition data.
+	Data       []byte       `json:"data,omitempty"`
 	ModifiedAt *metav1.Time `json:"modifiedAt,omitempty"`
+	// Represents the status of a definition.
+	Status *AlertManagerDefinitionStatus_SDK `json:"status,omitempty"`
 }
 
 // Represents the status of a definition.
-type AlertManagerDefinitionStatus struct {
+type AlertManagerDefinitionStatus_SDK struct {
+	// State of an alert manager definition.
+	StatusCode   *string `json:"statusCode,omitempty"`
 	StatusReason *string `json:"statusReason,omitempty"`
 }
 
