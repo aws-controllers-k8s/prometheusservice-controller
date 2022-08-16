@@ -36,7 +36,6 @@ MAX_WAIT_FOR_SYNCED_MINUTES = 10
 UPDATE_WAIT_AFTER_SECONDS = 5
 DELETE_WAIT_AFTER_SECONDS = 60
 CREATE_WAIT_AFTER_SECONDS = 90
-
 @pytest.fixture(scope="module")
 def workspace_resource():
         resource_name = random_suffix_name("amp-workspace", 24)
@@ -70,7 +69,7 @@ def workspace_resource():
         _, deleted = k8s.delete_custom_resource(workspace_ref)
         assert deleted
 
-
+        
 @service_marker
 @pytest.mark.canary
 class TestRuleGroupsNamespace:
@@ -108,7 +107,7 @@ class TestRuleGroupsNamespace:
         config_replacements = REPLACEMENT_VALUES.copy()
         config_replacements['RULE_NAME'] = "test-rule"
         configuration_data = load_prometheusservice_resource(
-            "configuration_data",
+            "rule_groups_configuration_data",
             additional_replacements=config_replacements,
         )
         # Convert the configuration to a string
@@ -189,7 +188,7 @@ class TestRuleGroupsNamespace:
         # We will use the same configuration but change one of the rule names
         config_replacements['RULE_NAME'] = "new-test-rule"
         configuration_data = load_prometheusservice_resource(
-            "configuration_data",
+            "rule_groups_configuration_data",
             additional_replacements=config_replacements,
         )
         # Convert the configuration to a string
@@ -282,7 +281,7 @@ class TestRuleGroupsNamespace:
         config_replacements = REPLACEMENT_VALUES.copy()
         config_replacements['RULE_NAME'] = "test-rule"
         configuration_data = load_prometheusservice_resource(
-            "configuration_data",
+            "rule_groups_configuration_data",
             additional_replacements=config_replacements,
         )
         # Convert the configuration to a string

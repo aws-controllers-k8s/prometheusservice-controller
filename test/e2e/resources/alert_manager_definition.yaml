@@ -1,0 +1,9 @@
+apiVersion: prometheusservice.services.k8s.aws/v1alpha1
+kind: AlertManagerDefinition
+metadata:
+  namespace: default
+  name: $ALERT_MANAGER_DEFINITION_NAME
+spec:
+  workspaceID: $WORKSPACE_ID
+  configuration: |
+    $CONFIGURATION

@@ -3,9 +3,9 @@ ignore:
     - CreateWorkspaceInput.ClientToken
     - CreateRuleGroupsNamespaceInput.ClientToken
     - CreateRuleGroupsNamespaceInput.Data
+    - CreateAlertManagerDefinitionInput.ClientToken
+    - CreateAlertManagerDefinitionInput.Data
   operations: null
-  resource_names:
-  - AlertManagerDefinition
 resources:
   Workspace:
     fields:
@@ -56,6 +56,36 @@ resources:
           template_path: hooks/rule_groups_namespace/sdk_create_post_set_output.go.tpl
         sdk_read_one_pre_set_output:
           template_path: hooks/rule_groups_namespace/sdk_read_one_pre_set_output.go.tpl
+    exceptions:
+      terminal_codes:
+        - ValidationException
+  AlertManagerDefinition:
+    tags:
+      ignore: true
+    fields:
+      workspaceID:
+        is_primary_key: true 
+        is_immutable: true
+        print:
+          name: WORKSPACE-ID      
+      # Exact same issue with the data field as the rules group resource. Reasoning for a new field is 
+      # the same as the explanation above. Instead of a base64 encoded byte slice, we expect a string and 
+      # handle the conversion ourselves. The user will interact with the new `configuration` field 
+      # instead of the `data` field. 
+      configuration:
+        type: "string"
+        is_required: True
+    update_operation:
+      custom_method_name: customUpdateAlertManagerDefinition
+    hooks:
+      sdk_create_post_build_request:
+        template_path: hooks/alert_manager_definition/sdk_create_post_build_request.go.tpl
+      sdk_create_post_set_output:
+        template_path: hooks/alert_manager_definition/sdk_create_post_set_output.go.tpl
+      sdk_read_one_pre_set_output:
+        template_path: hooks/alert_manager_definition/sdk_read_one_pre_set_output.go.tpl
+      sdk_delete_pre_build_request:
+        template_path: hooks/alert_manager_definition/sdk_delete_pre_build_request.go.tpl
     exceptions:
       terminal_codes:
         - ValidationException

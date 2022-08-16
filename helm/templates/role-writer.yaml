@@ -9,6 +9,8 @@ rules:
 - apiGroups:
   - prometheusservice.services.k8s.aws
   resources:
+  - alertmanagerdefinitions
+
   - rulegroupsnamespaces
 
   - workspaces
@@ -24,6 +26,7 @@ rules:
 - apiGroups:
   - prometheusservice.services.k8s.aws
   resources:
+  - alertmanagerdefinitions
   - rulegroupsnamespaces
   - workspaces
   verbs:
