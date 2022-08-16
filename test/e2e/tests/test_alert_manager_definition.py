@@ -16,7 +16,6 @@
 
 from dataclasses import replace
 import logging
-from pickle import FALSE
 import time
 import pytest
 import yaml
