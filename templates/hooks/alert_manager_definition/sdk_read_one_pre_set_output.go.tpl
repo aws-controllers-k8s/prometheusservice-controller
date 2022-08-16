@@ -63,12 +63,12 @@
 		// Convert the base64 byte array to a human-readable string
 		alertManagerDefinitionDataString := string(resp.AlertManagerDefinition.Data)
 
-		ko.Spec.AlertmanagerConfig = &alertManagerDefinitionDataString
+		ko.Spec.Configuration = &alertManagerDefinitionDataString
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		ko.Spec.AlertmanagerConfig = nil
+		ko.Spec.Configuration = nil
 	}
 
 	// if there is a read call and the status has already failed before, then the if
@@ -82,7 +82,7 @@
 	// no update call will be triggerred, and the resource will remain in UPDATE_FAILED. As a work around for this edge case, we set the config to nil to
 	// force an update call.
     if alertManagerDefinitionStatusFailed(r){
-        ko.Spec.AlertmanagerConfig = nil
+        ko.Spec.Configuration = nil
     }
 
 	if alertManagerDefinitionUpdating(&resource{ko}) {

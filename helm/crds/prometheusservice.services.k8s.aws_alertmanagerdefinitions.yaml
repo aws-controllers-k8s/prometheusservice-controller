@@ -41,14 +41,14 @@ spec:
           spec:
             description: AlertManagerDefinitionSpec defines the desired state of AlertManagerDefinition.
             properties:
-              alertmanagerConfig:
+              configuration:
                 type: string
               workspaceID:
                 description: The ID of the workspace in which to create the alert
                   manager definition.
                 type: string
             required:
-            - alertmanagerConfig
+            - configuration
             - workspaceID
             type: object
           status:

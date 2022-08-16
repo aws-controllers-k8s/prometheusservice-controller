@@ -125,8 +125,8 @@ func (in *AlertManagerDefinitionSpec) DeepCopyInto(out *AlertManagerDefinitionSp
 		*out = new(string)
 		**out = **in
 	}
-	if in.AlertmanagerConfig != nil {
-		in, out := &in.AlertmanagerConfig, &out.AlertmanagerConfig
+	if in.Configuration != nil {
+		in, out := &in.Configuration, &out.Configuration
 		*out = new(string)
 		**out = **in
 	}

@@ -27,7 +27,7 @@ type AlertManagerDefinitionSpec struct {
 	WorkspaceID *string `json:"workspaceID"`
 
 	// +kubebuilder:validation:Required
-	AlertmanagerConfig *string `json:"alertmanagerConfig"`
+	Configuration *string `json:"configuration"`
 }
 
 // AlertManagerDefinitionStatus defines the observed state of AlertManagerDefinition

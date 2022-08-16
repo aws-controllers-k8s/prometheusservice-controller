@@ -151,12 +151,12 @@ func (rm *resourceManager) sdkFind(
 		// Convert the base64 byte array to a human-readable string
 		alertManagerDefinitionDataString := string(resp.AlertManagerDefinition.Data)
 
-		ko.Spec.AlertmanagerConfig = &alertManagerDefinitionDataString
+		ko.Spec.Configuration = &alertManagerDefinitionDataString
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		ko.Spec.AlertmanagerConfig = nil
+		ko.Spec.Configuration = nil
 	}
 
 	// if there is a read call and the status has already failed before, then the if
@@ -170,7 +170,7 @@ func (rm *resourceManager) sdkFind(
 	// no update call will be triggerred, and the resource will remain in UPDATE_FAILED. As a work around for this edge case, we set the config to nil to
 	// force an update call.
 	if alertManagerDefinitionStatusFailed(r) {
-		ko.Spec.AlertmanagerConfig = nil
+		ko.Spec.Configuration = nil
 	}
 
 	if alertManagerDefinitionUpdating(&resource{ko}) {
@@ -228,8 +228,8 @@ func (rm *resourceManager) sdkCreate(
 	// Convert the string version of the definition to a byte slice
 	// because the API expects a base64 encoding. The conversion to base64
 	// is handled automatically by k8s.
-	if desired.ko.Spec.AlertmanagerConfig != nil {
-		input.Data = []byte(*desired.ko.Spec.AlertmanagerConfig)
+	if desired.ko.Spec.Configuration != nil {
+		input.Data = []byte(*desired.ko.Spec.Configuration)
 	}
 
 	var resp *svcsdk.CreateAlertManagerDefinitionOutput

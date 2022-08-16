@@ -48,11 +48,11 @@ func newResourceDelta(
 			delta.Add("Spec.WorkspaceID", a.ko.Spec.WorkspaceID, b.ko.Spec.WorkspaceID)
 		}
 	}
-	if ackcompare.HasNilDifference(a.ko.Spec.AlertmanagerConfig, b.ko.Spec.AlertmanagerConfig) {
-		delta.Add("Spec.AlertmanagerConfig", a.ko.Spec.AlertmanagerConfig, b.ko.Spec.AlertmanagerConfig)
-	} else if a.ko.Spec.AlertmanagerConfig != nil && b.ko.Spec.AlertmanagerConfig != nil {
-		if *a.ko.Spec.AlertmanagerConfig != *b.ko.Spec.AlertmanagerConfig {
-			delta.Add("Spec.AlertmanagerConfig", a.ko.Spec.AlertmanagerConfig, b.ko.Spec.AlertmanagerConfig)
+	if ackcompare.HasNilDifference(a.ko.Spec.Configuration, b.ko.Spec.Configuration) {
+		delta.Add("Spec.Configuration", a.ko.Spec.Configuration, b.ko.Spec.Configuration)
+	} else if a.ko.Spec.Configuration != nil && b.ko.Spec.Configuration != nil {
+		if *a.ko.Spec.Configuration != *b.ko.Spec.Configuration {
+			delta.Add("Spec.Configuration", a.ko.Spec.Configuration, b.ko.Spec.Configuration)
 		}
 	}
 

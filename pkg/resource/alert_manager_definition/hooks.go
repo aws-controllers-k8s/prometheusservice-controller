@@ -121,7 +121,9 @@ func (rm *resourceManager) customUpdateAlertManagerDefinition(
 	var err error
 	rlog := ackrtlog.FromContext(ctx)
 	exit := rlog.Trace("rm.customUpdateAlertManagerDefinition")
-	defer exit(err)
+	defer func() {
+		exit(err)
+	}()
 
 	// Check if the state is being currently created, updated or deleted.
 	// If it is, then requeue because we can't update while it is in those states.
@@ -141,7 +143,7 @@ func (rm *resourceManager) customUpdateAlertManagerDefinition(
 	// the original Kubernetes object we passed to the function
 	ko := desired.ko.DeepCopy()
 	rm.setStatusDefaults(ko)
-	if delta.DifferentAt("Spec.AlertmanagerConfig") {
+	if delta.DifferentAt("Spec.Configuration") {
 		updatedResource, err := rm.updateAlertManagerDefinitionData(ctx, desired)
 		if err != nil {
 			return nil, err
@@ -164,14 +166,16 @@ func (rm *resourceManager) updateAlertManagerDefinitionData(
 		var err error
 		rlog := ackrtlog.FromContext(ctx)
 		exit := rlog.Trace("rm.updateAlertManagerDefinitionData")
-		defer exit(err)
+		defer func() {
+			exit(err)
+		}()
 
 		var configurationBytes []byte = nil
 		// Convert the string version of the definition to a byte slice
 		// because the API expects a base64 encoding. The conversion to base64
 		// is handled automatically by k8s.
-		if desired.ko.Spec.AlertmanagerConfig != nil {
-			configurationBytes = []byte(*desired.ko.Spec.AlertmanagerConfig)
+		if desired.ko.Spec.Configuration != nil {
+			configurationBytes = []byte(*desired.ko.Spec.Configuration)
 		}
 
 		input := &svcsdk.PutAlertManagerDefinitionInput{

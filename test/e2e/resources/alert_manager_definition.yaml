@@ -5,5 +5,5 @@ metadata:
   name: $ALERT_MANAGER_DEFINITION_NAME
 spec:
   workspaceID: $WORKSPACE_ID
-  alertmanagerConfig: |
+  configuration: |
     $CONFIGURATION

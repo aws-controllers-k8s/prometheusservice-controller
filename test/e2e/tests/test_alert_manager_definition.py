@@ -16,6 +16,7 @@
 
 from dataclasses import replace
 import logging
+from pickle import FALSE
 import time
 import pytest
 import yaml
@@ -84,7 +85,7 @@ class TestAlertManagerDefinition:
             return None
 
     def test_successful_crud_alert_manager_definition(self, prometheusservice_client, workspace_resource):
-        sns_topic_name = get_bootstrap_resources().AlertManagerSNSTopic.name_prefix
+        sns_topic_name = get_bootstrap_resources().AlertManagerSNSTopic.name
         sns_topic_arn = get_bootstrap_resources().AlertManagerSNSTopic.arn
         resource_name = random_suffix_name("alert-manager-definition", 30)
 
@@ -129,8 +130,8 @@ class TestAlertManagerDefinition:
         assert k8s.get_resource_exists(am_ref)
         assert am_resource is not None
         assert am_resource['spec']['workspaceID'] == workspace_id
-        assert 'alertmanagerConfig' in am_resource['spec']
-        assert am_resource['spec']['alertmanagerConfig'] == configuration_str
+        assert 'configuration' in am_resource['spec']
+        assert am_resource['spec']['configuration'] == configuration_str
         condition.assert_not_synced(am_ref)
 
         assert k8s.wait_on_condition(am_ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
@@ -169,7 +170,7 @@ class TestAlertManagerDefinition:
         new_alert_config = str(yaml.dump(configuration_data))        
         
         updates = {
-            "spec": {"alertmanagerConfig": new_alert_config},
+            "spec": {"configuration": new_alert_config},
         }
 
         res= k8s.patch_custom_resource(am_ref, updates)
@@ -227,7 +228,7 @@ class TestAlertManagerDefinition:
         # The first error is a regular exception that the controller handles the same for all controllers. 
         # In this test, we will be testing the 2nd error where the creation doesn't fail right away. 
 
-        sns_topic_name = get_bootstrap_resources().AlertManagerSNSTopic.name_prefix
+        sns_topic_name = get_bootstrap_resources().AlertManagerSNSTopic.name
         sns_topic_arn = get_bootstrap_resources().AlertManagerSNSTopic.arn
         resource_name = random_suffix_name("alert-manager-definition", 30)
 
@@ -275,8 +276,8 @@ class TestAlertManagerDefinition:
         assert am_resource['spec'] is not None
         assert 'workspaceID' in am_resource['spec']
         assert am_resource['spec']['workspaceID'] == workspace_id
-        assert 'alertmanagerConfig' in am_resource['spec']
-        assert am_resource['spec']['alertmanagerConfig'] == configuration_str
+        assert 'configuration' in am_resource['spec']
+        assert am_resource['spec']['configuration'] == configuration_str
 
         condition.assert_not_synced(am_ref)
         assert k8s.wait_on_condition(am_ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
@@ -314,7 +315,7 @@ class TestAlertManagerDefinition:
         configuration_str = str(yaml.dump(configuration_data))
 
         updates = {
-            "spec": {"alertmanagerConfig": configuration_str},
+            "spec": {"configuration": configuration_str},
         }
 
         res= k8s.patch_custom_resource(am_ref, updates)
@@ -346,7 +347,7 @@ class TestAlertManagerDefinition:
         # The first error is a regular exception that the controller handles the same for all controllers. 
         # In this test, we will be testing the 2nd error where the update doesn't fail right away. 
  
-        sns_topic_name = get_bootstrap_resources().AlertManagerSNSTopic.name_prefix
+        sns_topic_name = get_bootstrap_resources().AlertManagerSNSTopic.name
         sns_topic_arn = get_bootstrap_resources().AlertManagerSNSTopic.arn
         resource_name = random_suffix_name("alert-manager-definition", 30)
 
@@ -431,7 +432,7 @@ class TestAlertManagerDefinition:
 
 
         updates = {
-            "spec": {"alertmanagerConfig": invalid_configuration_str},
+            "spec": {"configuration": invalid_configuration_str},
         }
 
         k8s.patch_custom_resource(am_ref, updates)
@@ -450,7 +451,7 @@ class TestAlertManagerDefinition:
 
         # Update with a valid configuration
         updates = {
-            "spec": {"alertmanagerConfig": configuration_str},
+            "spec": {"configuration": configuration_str},
         }
 
         k8s.patch_custom_resource(am_ref, updates)
@@ -473,7 +474,7 @@ class TestAlertManagerDefinition:
         # There can only be one alert manager definition per workspace. 
         # If two are created, the second resource should result in a terminal error. 
    
-        sns_topic_name = get_bootstrap_resources().AlertManagerSNSTopic.name_prefix
+        sns_topic_name = get_bootstrap_resources().AlertManagerSNSTopic.name
         sns_topic_arn = get_bootstrap_resources().AlertManagerSNSTopic.arn
         resource_name = random_suffix_name("alert-manager-definition", 30)
 

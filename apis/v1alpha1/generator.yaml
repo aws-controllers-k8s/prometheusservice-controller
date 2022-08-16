@@ -70,9 +70,9 @@ resources:
           name: WORKSPACE-ID      
       # Exact same issue with the data field as the rules group resource. Reasoning for a new field is 
       # the same as the explanation above. Instead of a base64 encoded byte slice, we expect a string and 
-      # handle the conversion ourselves. The user will interact with the new `alertmanagerConfig` field 
+      # handle the conversion ourselves. The user will interact with the new `configuration` field 
       # instead of the `data` field. 
-      alertmanagerConfig:
+      configuration:
         type: "string"
         is_required: True
     update_operation:
