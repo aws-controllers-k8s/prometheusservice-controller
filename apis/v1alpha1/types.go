@@ -45,6 +45,19 @@ type AlertManagerDefinitionStatus_SDK struct {
 	StatusReason *string `json:"statusReason,omitempty"`
 }
 
+// Represents the properties of a logging configuration metadata.
+type LoggingConfigurationMetadata struct {
+	CreatedAt  *metav1.Time `json:"createdAt,omitempty"`
+	ModifiedAt *metav1.Time `json:"modifiedAt,omitempty"`
+	// A workspace ID.
+	Workspace *string `json:"workspace,omitempty"`
+}
+
+// Represents the status of a logging configuration.
+type LoggingConfigurationStatus struct {
+	StatusReason *string `json:"statusReason,omitempty"`
+}
+
 // Represents a description of the rule groups namespace.
 type RuleGroupsNamespaceDescription struct {
 	// An ARN identifying a rule groups namespace.
