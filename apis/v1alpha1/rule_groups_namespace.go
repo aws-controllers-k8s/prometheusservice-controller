@@ -22,6 +22,7 @@ import (
 
 // RuleGroupsNamespaceSpec defines the desired state of RuleGroupsNamespace.
 type RuleGroupsNamespaceSpec struct {
+
 	// The rule groups namespace name.
 	// +kubebuilder:validation:Required
 	Name *string `json:"name"`
@@ -30,7 +31,6 @@ type RuleGroupsNamespaceSpec struct {
 	// The ID of the workspace in which to create the rule group namespace.
 	// +kubebuilder:validation:Required
 	WorkspaceID *string `json:"workspaceID"`
-
 	// +kubebuilder:validation:Required
 	Configuration *string `json:"configuration"`
 }
