@@ -22,10 +22,10 @@ import (
 
 // AlertManagerDefinitionSpec defines the desired state of AlertManagerDefinition.
 type AlertManagerDefinitionSpec struct {
+
 	// The ID of the workspace in which to create the alert manager definition.
 	// +kubebuilder:validation:Required
 	WorkspaceID *string `json:"workspaceID"`
-
 	// +kubebuilder:validation:Required
 	Configuration *string `json:"configuration"`
 }

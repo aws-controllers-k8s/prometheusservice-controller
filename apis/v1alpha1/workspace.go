@@ -22,6 +22,7 @@ import (
 
 // WorkspaceSpec defines the desired state of Workspace.
 type WorkspaceSpec struct {
+
 	// An optional user-assigned alias for this workspace. This alias is for user
 	// reference and does not need to be unique.
 	Alias *string `json:"alias,omitempty"`
