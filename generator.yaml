@@ -91,4 +91,5 @@ resources:
     exceptions:
       terminal_codes:
         - ValidationException
-model_name: amp 
+sdk_names:
+  model_name: amp 
