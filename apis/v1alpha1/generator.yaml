@@ -101,6 +101,8 @@ resources:
           name: WORKSPACE-ID
       logGroupArn:
         is_required: true
+        print:
+          name: LogGroupARN
     tags:
       ignore: true
 sdk_names:

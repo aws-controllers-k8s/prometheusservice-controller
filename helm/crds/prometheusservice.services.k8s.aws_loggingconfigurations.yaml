@@ -16,6 +16,9 @@ spec:
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
+    - jsonPath: .spec.logGroupARN
+      name: LogGroupARN
+      type: string
     - jsonPath: .spec.workspaceID
       name: WORKSPACE-ID
       type: string
