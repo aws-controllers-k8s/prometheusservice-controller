@@ -3,5 +3,6 @@ kind: Kustomization
 resources:
   - common
   - bases/prometheusservice.services.k8s.aws_alertmanagerdefinitions.yaml
+  - bases/prometheusservice.services.k8s.aws_loggingconfigurations.yaml
   - bases/prometheusservice.services.k8s.aws_rulegroupsnamespaces.yaml
   - bases/prometheusservice.services.k8s.aws_workspaces.yaml

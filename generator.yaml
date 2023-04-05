@@ -5,9 +5,10 @@ ignore:
     - CreateRuleGroupsNamespaceInput.Data
     - CreateAlertManagerDefinitionInput.ClientToken
     - CreateAlertManagerDefinitionInput.Data
+    - CreateLoggingConfigurationInput.ClientToken
   operations: null
   resource_names:
-    - LoggingConfiguration
+    # - LoggingConfiguration
 resources:
   Workspace:
     fields:
@@ -91,5 +92,16 @@ resources:
     exceptions:
       terminal_codes:
         - ValidationException
+  LoggingConfiguration:
+    fields:
+      workspaceID:
+        is_immutable: true
+        is_primary_key: true
+        print:
+          name: WORKSPACE-ID
+      logGroupArn:
+        is_required: true
+    tags:
+      ignore: true
 sdk_names:
   model_name: amp 

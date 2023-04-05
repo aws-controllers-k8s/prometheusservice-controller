@@ -11,6 +11,8 @@ rules:
   resources:
   - alertmanagerdefinitions
 
+  - loggingconfigurations
+
   - rulegroupsnamespaces
 
   - workspaces
@@ -27,6 +29,7 @@ rules:
   - prometheusservice.services.k8s.aws
   resources:
   - alertmanagerdefinitions
+  - loggingconfigurations
   - rulegroupsnamespaces
   - workspaces
   verbs:
