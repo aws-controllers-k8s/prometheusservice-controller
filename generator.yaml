@@ -94,7 +94,7 @@ resources:
         - ValidationException
   LoggingConfiguration:
     fields:
-      workspaceID:
+      WorkspaceID:
         is_immutable: true
         is_primary_key: true
         print:
@@ -103,6 +103,11 @@ resources:
         is_required: true
         print:
           name: LogGroupARN
+    hooks:
+      sdk_create_post_set_output:
+        template_path: hooks/logging_configuration/sdk_create_post_set_output.go.tpl
+      sdk_read_one_post_set_output:
+        template_path: hooks/logging_configuration/sdk_read_one_post_set_output.go.tpl
     tags:
       ignore: true
 sdk_names:
