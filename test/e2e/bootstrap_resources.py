@@ -18,11 +18,14 @@ for them.
 from dataclasses import dataclass
 from acktest.bootstrapping import Resources
 from acktest.bootstrapping.sns import Topic
+from acktest.bootstrapping.cloudwatch import LogGroup
 from e2e import bootstrap_directory
 
 @dataclass
 class BootstrapResources(Resources):
     AlertManagerSNSTopic: Topic
+    LoggingConfigurationLogGroup1: LogGroup.LogGroup
+    LoggingConfigurationLogGroup2: LogGroup.LogGroup
 
 _bootstrap_resources = None
 
