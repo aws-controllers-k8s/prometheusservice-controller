@@ -24,8 +24,8 @@ from e2e import bootstrap_directory
 @dataclass
 class BootstrapResources(Resources):
     AlertManagerSNSTopic: Topic
-    LoggingConfigurationLogGroup1: LogGroup.LogGroup
-    LoggingConfigurationLogGroup2: LogGroup.LogGroup
+    LoggingConfigurationLogGroup1: LogGroup
+    LoggingConfigurationLogGroup2: LogGroup
 
 _bootstrap_resources = None
 

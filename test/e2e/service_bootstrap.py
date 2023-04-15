@@ -28,10 +28,10 @@ def service_bootstrap() -> Resources:
         AlertManagerSNSTopic = Topic(
             name_prefix="ack-prometheus-test-topic"
         ),
-        LoggingConfigurationLogGroup1 = LogGroup.LogGroup(
+        LoggingConfigurationLogGroup1 = LogGroup(
             name_prefix="ack-promehteus-test-log-group1"
         ),
-        LoggingConfigurationLogGroup2 = LogGroup.LogGroup(
+        LoggingConfigurationLogGroup2 = LogGroup(
             name_prefix="ack-promehteus-test-log-group2"
         ),
     )

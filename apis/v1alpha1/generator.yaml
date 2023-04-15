@@ -7,8 +7,6 @@ ignore:
     - CreateAlertManagerDefinitionInput.Data
     - CreateLoggingConfigurationInput.ClientToken
   operations: null
-  resource_names:
-    # - LoggingConfiguration
 resources:
   Workspace:
     fields:
