@@ -31,6 +31,7 @@ RESOURCE_PLURAL = "loggingconfigurations"
 
 MODIFY_WAIT_AFTER_SECONDS = 10
 MAX_WAIT_FOR_SYNCED_MINUTES = 10
+DELETE_WAIT_AFTER_SECONDS = 60
 
 @pytest.fixture(scope="module")
 def workspace_resource():
@@ -162,3 +163,5 @@ class TestLoggingConfiguration:
         assert deleted
         logging_configuration = self.get_logging_configuration(prometheusservice_client, lc_resource['spec']['workspaceID'])
         assert logging_configuration is None
+
+        time.sleep(DELETE_WAIT_AFTER_SECONDS)
