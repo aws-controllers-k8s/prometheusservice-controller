@@ -55,7 +55,7 @@ type LoggingConfigurationStatus struct {
 // LoggingConfiguration is the Schema for the LoggingConfigurations API
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:printcolumn:name="LogGroupARN",type=string,priority=0,JSONPath=`.spec.logGroupARN`
+// +kubebuilder:printcolumn:name="LOG-GROUP-ARN",type=string,priority=0,JSONPath=`.spec.logGroupARN`
 // +kubebuilder:printcolumn:name="WORKSPACE-ID",type=string,priority=0,JSONPath=`.spec.workspaceID`
 type LoggingConfiguration struct {
 	metav1.TypeMeta   `json:",inline"`

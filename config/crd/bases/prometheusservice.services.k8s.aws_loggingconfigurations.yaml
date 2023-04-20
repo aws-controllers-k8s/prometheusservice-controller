@@ -17,7 +17,7 @@ spec:
   versions:
   - additionalPrinterColumns:
     - jsonPath: .spec.logGroupARN
-      name: LogGroupARN
+      name: LOG-GROUP-ARN
       type: string
     - jsonPath: .spec.workspaceID
       name: WORKSPACE-ID

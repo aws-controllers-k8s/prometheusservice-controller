@@ -97,10 +97,10 @@ resources:
         is_primary_key: true
         print:
           name: WORKSPACE-ID
-      logGroupArn:
+      LogGroupArn:
         is_required: true
         print:
-          name: LogGroupARN
+          name: LOG-GROUP-ARN
     hooks:
       sdk_create_post_set_output:
         template_path: hooks/logging_configuration/sdk_create_post_set_output.go.tpl
