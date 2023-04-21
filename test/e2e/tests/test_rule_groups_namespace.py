@@ -358,3 +358,5 @@ class TestRuleGroupsNamespace:
 
         _, deleted = k8s.delete_custom_resource(rule_ref_2)
         assert deleted
+
+        time.sleep(DELETE_WAIT_AFTER_SECONDS)

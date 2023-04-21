@@ -18,6 +18,8 @@ from acktest.bootstrapping import Resources, BootstrapFailureException
 from e2e import bootstrap_directory
 from e2e.bootstrap_resources import BootstrapResources
 from acktest.bootstrapping.sns import Topic
+from acktest.bootstrapping.cloudwatch import LogGroup
+from acktest.resources import random_suffix_name
 
 def service_bootstrap() -> Resources:
     logging.getLogger().setLevel(logging.INFO)
@@ -25,7 +27,13 @@ def service_bootstrap() -> Resources:
     resources = BootstrapResources(
         AlertManagerSNSTopic = Topic(
             name_prefix="ack-prometheus-test-topic"
-        )
+        ),
+        LoggingConfigurationLogGroup1 = LogGroup(
+            name_prefix="ack-prometheus-test-log-group1"
+        ),
+        LoggingConfigurationLogGroup2 = LogGroup(
+            name_prefix="ack-prometheus-test-log-group2"
+        ),
     )
 
     try:

@@ -31,6 +31,7 @@ RESOURCE_PLURAL = "workspaces"
 
 MODIFY_WAIT_AFTER_SECONDS = 10
 MAX_WAIT_FOR_SYNCED_MINUTES = 10
+DELETE_WAIT_AFTER_SECONDS = 60
 
 @service_marker
 @pytest.mark.canary
@@ -167,3 +168,5 @@ class TestWorkspace:
         assert deleted
         workspace = self.get_workspace(prometheusservice_client, workspace_resource['status']['workspaceID'])
         assert workspace is None
+
+        time.sleep(DELETE_WAIT_AFTER_SECONDS)

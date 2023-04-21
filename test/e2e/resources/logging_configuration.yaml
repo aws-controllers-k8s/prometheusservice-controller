@@ -1,0 +1,7 @@
+apiVersion: prometheusservice.services.k8s.aws/v1alpha1
+kind: LoggingConfiguration
+metadata:
+  name: $LOGGING_CONFIGURATION_NAME
+spec:
+  workspaceID: $WORKSPACE_ID
+  logGroupARN: $LOG_GROUP_ARN

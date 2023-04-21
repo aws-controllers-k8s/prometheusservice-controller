@@ -336,6 +336,8 @@ class TestAlertManagerDefinition:
         _, deleted = k8s.delete_custom_resource(am_ref)
         assert deleted
 
+        time.sleep(DELETE_WAIT_AFTER_SECONDS)
+
 
     def test_failed_alert_manager_update(self, prometheusservice_client, workspace_resource):
         # Similar to the failed creation, the update can fail 2 ways
@@ -469,6 +471,8 @@ class TestAlertManagerDefinition:
         _, deleted = k8s.delete_custom_resource(am_ref)
         assert deleted
 
+        time.sleep(DELETE_WAIT_AFTER_SECONDS)
+
     def test_creating_two_alert_manager_for_one_workspace(self, prometheusservice_client, workspace_resource):
         # There can only be one alert manager definition per workspace. 
         # If two are created, the second resource should result in a terminal error. 
@@ -553,3 +557,5 @@ class TestAlertManagerDefinition:
 
         _, deleted = k8s.delete_custom_resource(am_ref_2)
         assert deleted
+
+        time.sleep(DELETE_WAIT_AFTER_SECONDS)

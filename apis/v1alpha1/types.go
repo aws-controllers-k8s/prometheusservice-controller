@@ -47,14 +47,19 @@ type AlertManagerDefinitionStatus_SDK struct {
 
 // Represents the properties of a logging configuration metadata.
 type LoggingConfigurationMetadata struct {
-	CreatedAt  *metav1.Time `json:"createdAt,omitempty"`
-	ModifiedAt *metav1.Time `json:"modifiedAt,omitempty"`
+	CreatedAt   *metav1.Time `json:"createdAt,omitempty"`
+	LogGroupARN *string      `json:"logGroupARN,omitempty"`
+	ModifiedAt  *metav1.Time `json:"modifiedAt,omitempty"`
+	// Represents the status of a logging configuration.
+	Status *LoggingConfigurationStatus_SDK `json:"status,omitempty"`
 	// A workspace ID.
 	Workspace *string `json:"workspace,omitempty"`
 }
 
 // Represents the status of a logging configuration.
-type LoggingConfigurationStatus struct {
+type LoggingConfigurationStatus_SDK struct {
+	// State of a logging configuration.
+	StatusCode   *string `json:"statusCode,omitempty"`
 	StatusReason *string `json:"statusReason,omitempty"`
 }
 
