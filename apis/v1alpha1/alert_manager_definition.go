@@ -24,8 +24,8 @@ import (
 type AlertManagerDefinitionSpec struct {
 
 	// The ID of the workspace in which to create the alert manager definition.
-	// +kubebuilder:validation:Required
-	WorkspaceID *string `json:"workspaceID"`
+	WorkspaceID  *string                                  `json:"workspaceID,omitempty"`
+	WorkspaceRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"workspaceRef,omitempty"`
 	// +kubebuilder:validation:Required
 	Configuration *string `json:"configuration"`
 }

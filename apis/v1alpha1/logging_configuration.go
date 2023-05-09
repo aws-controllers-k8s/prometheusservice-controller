@@ -27,8 +27,8 @@ type LoggingConfigurationSpec struct {
 	// +kubebuilder:validation:Required
 	LogGroupARN *string `json:"logGroupARN"`
 	// The ID of the workspace to vend logs to.
-	// +kubebuilder:validation:Required
-	WorkspaceID *string `json:"workspaceID"`
+	WorkspaceID  *string                                  `json:"workspaceID,omitempty"`
+	WorkspaceRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"workspaceRef,omitempty"`
 }
 
 // LoggingConfigurationStatus defines the observed state of LoggingConfiguration

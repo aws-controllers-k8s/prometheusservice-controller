@@ -29,8 +29,8 @@ type RuleGroupsNamespaceSpec struct {
 	// Optional, user-provided tags for this rule groups namespace.
 	Tags map[string]*string `json:"tags,omitempty"`
 	// The ID of the workspace in which to create the rule group namespace.
-	// +kubebuilder:validation:Required
-	WorkspaceID *string `json:"workspaceID"`
+	WorkspaceID  *string                                  `json:"workspaceID,omitempty"`
+	WorkspaceRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"workspaceRef,omitempty"`
 	// +kubebuilder:validation:Required
 	Configuration *string `json:"configuration"`
 }
