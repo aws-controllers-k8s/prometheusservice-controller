@@ -125,6 +125,11 @@ func (in *AlertManagerDefinitionSpec) DeepCopyInto(out *AlertManagerDefinitionSp
 		*out = new(string)
 		**out = **in
 	}
+	if in.WorkspaceRef != nil {
+		in, out := &in.WorkspaceRef, &out.WorkspaceRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.Configuration != nil {
 		in, out := &in.Configuration, &out.Configuration
 		*out = new(string)
@@ -317,6 +322,11 @@ func (in *LoggingConfigurationSpec) DeepCopyInto(out *LoggingConfigurationSpec) 
 		in, out := &in.WorkspaceID, &out.WorkspaceID
 		*out = new(string)
 		**out = **in
+	}
+	if in.WorkspaceRef != nil {
+		in, out := &in.WorkspaceRef, &out.WorkspaceRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
 	}
 }
 
@@ -540,6 +550,11 @@ func (in *RuleGroupsNamespaceSpec) DeepCopyInto(out *RuleGroupsNamespaceSpec) {
 		in, out := &in.WorkspaceID, &out.WorkspaceID
 		*out = new(string)
 		**out = **in
+	}
+	if in.WorkspaceRef != nil {
+		in, out := &in.WorkspaceRef, &out.WorkspaceRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
 	}
 	if in.Configuration != nil {
 		in, out := &in.Configuration, &out.Configuration

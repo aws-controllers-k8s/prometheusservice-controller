@@ -32,7 +32,10 @@ resources:
       WorkspaceID:
         is_immutable: true
         print:
-          name: WORKSPACE-ID      
+          name: WORKSPACE-ID   
+        references:
+          resource: Workspace
+          path: Status.WorkspaceID
       Tags:
         compare:
           is_ignored: True
@@ -68,7 +71,10 @@ resources:
         is_primary_key: true 
         is_immutable: true
         print:
-          name: WORKSPACE-ID      
+          name: WORKSPACE-ID  
+        references:
+          resource: Workspace
+          path: Status.WorkspaceID
       # Exact same issue with the data field as the rules group resource. Reasoning for a new field is 
       # the same as the explanation above. Instead of a base64 encoded byte slice, we expect a string and 
       # handle the conversion ourselves. The user will interact with the new `configuration` field 
@@ -97,6 +103,9 @@ resources:
         is_primary_key: true
         print:
           name: WORKSPACE-ID
+        references:
+          resource: Workspace
+          path: Status.WorkspaceID
       LogGroupArn:
         is_required: true
         print:
