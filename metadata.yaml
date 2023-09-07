@@ -2,7 +2,7 @@ service:
   full_name: "Amazon Managed Service for Prometheus"
   short_name: "AMP"
   link: "https://aws.amazon.com/prometheus/"
-  documentation: "https://docs.aws.amazon.com/prometheus/index.html"
+  documentation: "https://docs.aws.amazon.com/prometheus/"
 api_versions:
   - api_version: v1alpha1
     status: available
