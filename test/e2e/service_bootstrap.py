@@ -29,10 +29,10 @@ def service_bootstrap() -> Resources:
             name_prefix="ack-prometheus-test-topic"
         ),
         LoggingConfigurationLogGroup1 = LogGroup(
-            name_prefix="ack-prometheus-test-log-group1"
+            name_prefix="/aws/vendedlogs/aps/ack-prometheus-test-log-group1"
         ),
         LoggingConfigurationLogGroup2 = LogGroup(
-            name_prefix="ack-prometheus-test-log-group2"
+            name_prefix="/aws/vendedlogs/aps/ack-prometheus-test-log-group2"
         ),
     )
 
