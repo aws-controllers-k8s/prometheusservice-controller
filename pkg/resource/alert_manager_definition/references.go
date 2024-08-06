@@ -56,12 +56,11 @@ func (rm *resourceManager) ResolveReferences(
 	apiReader client.Reader,
 	res acktypes.AWSResource,
 ) (acktypes.AWSResource, bool, error) {
-	namespace := res.MetaObject().GetNamespace()
 	ko := rm.concreteResource(res).ko
 
 	resourceHasReferences := false
 	err := validateReferenceFields(ko)
-	if fieldHasReferences, err := rm.resolveReferenceForWorkspaceID(ctx, apiReader, namespace, ko); err != nil {
+	if fieldHasReferences, err := rm.resolveReferenceForWorkspaceID(ctx, apiReader, ko); err != nil {
 		return &resource{ko}, (resourceHasReferences || fieldHasReferences), err
 	} else {
 		resourceHasReferences = resourceHasReferences || fieldHasReferences
@@ -90,7 +89,6 @@ func validateReferenceFields(ko *svcapitypes.AlertManagerDefinition) error {
 func (rm *resourceManager) resolveReferenceForWorkspaceID(
 	ctx context.Context,
 	apiReader client.Reader,
-	namespace string,
 	ko *svcapitypes.AlertManagerDefinition,
 ) (hasReferences bool, err error) {
 	if ko.Spec.WorkspaceRef != nil && ko.Spec.WorkspaceRef.From != nil {
@@ -98,6 +96,10 @@ func (rm *resourceManager) resolveReferenceForWorkspaceID(
 		arr := ko.Spec.WorkspaceRef.From
 		if arr.Name == nil || *arr.Name == "" {
 			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: WorkspaceRef")
+		}
+		namespace := ko.ObjectMeta.GetNamespace()
+		if arr.Namespace != nil && *arr.Namespace != "" {
+			namespace = *arr.Namespace
 		}
 		obj := &svcapitypes.Workspace{}
 		if err := getReferencedResourceState_Workspace(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
