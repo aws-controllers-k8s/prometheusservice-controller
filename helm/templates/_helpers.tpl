@@ -55,6 +55,7 @@ rules:
   - ""
   resources:
   - configmaps
+  - secrets
   verbs:
   - get
   - list
@@ -69,77 +70,11 @@ rules:
   - list
   - watch
 - apiGroups:
-  - ""
-  resources:
-  - secrets
-  verbs:
-  - get
-  - list
-  - patch
-  - watch
-- apiGroups:
   - prometheusservice.services.k8s.aws
   resources:
   - alertmanagerdefinitions
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - prometheusservice.services.k8s.aws
-  resources:
-  - alertmanagerdefinitions/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - prometheusservice.services.k8s.aws
-  resources:
   - loggingconfigurations
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - prometheusservice.services.k8s.aws
-  resources:
-  - loggingconfigurations/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - prometheusservice.services.k8s.aws
-  resources:
   - rulegroupsnamespaces
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - prometheusservice.services.k8s.aws
-  resources:
-  - rulegroupsnamespaces/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - prometheusservice.services.k8s.aws
-  resources:
   - workspaces
   verbs:
   - create
@@ -152,6 +87,9 @@ rules:
 - apiGroups:
   - prometheusservice.services.k8s.aws
   resources:
+  - alertmanagerdefinitions/status
+  - loggingconfigurations/status
+  - rulegroupsnamespaces/status
   - workspaces/status
   verbs:
   - get
@@ -161,25 +99,6 @@ rules:
   - services.k8s.aws
   resources:
   - adoptedresources
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - services.k8s.aws
-  resources:
-  - adoptedresources/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - services.k8s.aws
-  resources:
   - fieldexports
   verbs:
   - create
@@ -192,6 +111,7 @@ rules:
 - apiGroups:
   - services.k8s.aws
   resources:
+  - adoptedresources/status
   - fieldexports/status
   verbs:
   - get
