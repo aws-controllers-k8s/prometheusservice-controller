@@ -1,14 +1,16 @@
 # See the OWNERS docs at https://go.k8s.io/owners#owners_aliases
 
 aliases:
-  # Always allow the core ACK maintainers to have access to your repository
   core-ack-team:
-    - jaypipes
     - a-hilaly
-    - RedbackThomson
-    - vijtrip2
-  service-team:
-    - ilangofman
-    - wilguo
-    - alvinlin123
-    - NacerSebtiMS
+    - jlbutler
+    - michaelhtm
+    - TiberiuGC
+    - rushmash91
+  # emeritus-core-ack-team:
+  #   - jaypipes
+  #   - jljaco
+  #   - mhausenblas
+  #   - RedbackThomson
+  #   - vijtrip2
+  #   - ivelichkovich
