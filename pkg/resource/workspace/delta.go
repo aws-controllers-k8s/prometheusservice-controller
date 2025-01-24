@@ -51,6 +51,13 @@ func newResourceDelta(
 			delta.Add("Spec.Alias", a.ko.Spec.Alias, b.ko.Spec.Alias)
 		}
 	}
+	if ackcompare.HasNilDifference(a.ko.Spec.KMSKeyARN, b.ko.Spec.KMSKeyARN) {
+		delta.Add("Spec.KMSKeyARN", a.ko.Spec.KMSKeyARN, b.ko.Spec.KMSKeyARN)
+	} else if a.ko.Spec.KMSKeyARN != nil && b.ko.Spec.KMSKeyARN != nil {
+		if *a.ko.Spec.KMSKeyARN != *b.ko.Spec.KMSKeyARN {
+			delta.Add("Spec.KMSKeyARN", a.ko.Spec.KMSKeyARN, b.ko.Spec.KMSKeyARN)
+		}
+	}
 
 	return delta
 }

@@ -23,7 +23,7 @@ import (
 // AlertManagerDefinitionSpec defines the desired state of AlertManagerDefinition.
 type AlertManagerDefinitionSpec struct {
 
-	// The ID of the workspace in which to create the alert manager definition.
+	// The ID of the workspace to add the alert manager definition to.
 	WorkspaceID  *string                                  `json:"workspaceID,omitempty"`
 	WorkspaceRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"workspaceRef,omitempty"`
 	// +kubebuilder:validation:Required
@@ -43,10 +43,10 @@ type AlertManagerDefinitionStatus struct {
 	// resource
 	// +kubebuilder:validation:Optional
 	Conditions []*ackv1alpha1.Condition `json:"conditions"`
-	// Status code of this definition.
+	// The current status of the alert manager.
 	// +kubebuilder:validation:Optional
 	StatusCode *string `json:"statusCode,omitempty"`
-	// The reason for failure if any.
+	// If there is a failure, the reason for the failure.
 	// +kubebuilder:validation:Optional
 	StatusReason *string `json:"statusReason,omitempty"`
 }
