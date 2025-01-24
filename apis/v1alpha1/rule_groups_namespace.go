@@ -23,12 +23,12 @@ import (
 // RuleGroupsNamespaceSpec defines the desired state of RuleGroupsNamespace.
 type RuleGroupsNamespaceSpec struct {
 
-	// The rule groups namespace name.
+	// The name for the new rule groups namespace.
 	// +kubebuilder:validation:Required
 	Name *string `json:"name"`
-	// Optional, user-provided tags for this rule groups namespace.
+	// The list of tag keys and values to associate with the rule groups namespace.
 	Tags map[string]*string `json:"tags,omitempty"`
-	// The ID of the workspace in which to create the rule group namespace.
+	// The ID of the workspace to add the rule groups namespace.
 	WorkspaceID  *string                                  `json:"workspaceID,omitempty"`
 	WorkspaceRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"workspaceRef,omitempty"`
 	// +kubebuilder:validation:Required
@@ -48,7 +48,7 @@ type RuleGroupsNamespaceStatus struct {
 	// resource
 	// +kubebuilder:validation:Optional
 	Conditions []*ackv1alpha1.Condition `json:"conditions"`
-	// The status of rule groups namespace.
+	// A structure that returns the current status of the rule groups namespace.
 	// +kubebuilder:validation:Optional
 	Status *RuleGroupsNamespaceStatus_SDK `json:"status,omitempty"`
 }

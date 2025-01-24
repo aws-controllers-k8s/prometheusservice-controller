@@ -1,8 +1,8 @@
 
     // Check the status of the alert manager definition
 	if resp.AlertManagerDefinition.Status != nil {
-		if resp.AlertManagerDefinition.Status.StatusCode != nil {
-			ko.Status.StatusCode = resp.AlertManagerDefinition.Status.StatusCode
+		if resp.AlertManagerDefinition.Status.StatusCode != "" {
+			ko.Status.StatusCode = aws.String(string(resp.AlertManagerDefinition.Status.StatusCode))
 		} else {
 			ko.Status.StatusCode = nil
 		}

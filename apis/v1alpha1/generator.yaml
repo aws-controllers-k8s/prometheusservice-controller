@@ -1,4 +1,6 @@
 ignore:
+  resource_names:
+   - Scraper 
   field_paths:
     - CreateWorkspaceInput.ClientToken
     - CreateRuleGroupsNamespaceInput.ClientToken
@@ -118,4 +120,5 @@ resources:
     tags:
       ignore: true
 sdk_names:
-  model_name: amp 
+  model_name: amp
+  package_name: amp

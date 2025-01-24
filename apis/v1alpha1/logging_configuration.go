@@ -23,10 +23,11 @@ import (
 // LoggingConfigurationSpec defines the desired state of LoggingConfiguration.
 type LoggingConfigurationSpec struct {
 
-	// The ARN of the CW log group to which the vended log data will be published.
+	// The ARN of the CloudWatch log group to which the vended log data will be
+	// published. This log group must exist prior to calling this operation.
 	// +kubebuilder:validation:Required
 	LogGroupARN *string `json:"logGroupARN"`
-	// The ID of the workspace to vend logs to.
+	// The ID of the workspace to create the logging configuration for.
 	WorkspaceID  *string                                  `json:"workspaceID,omitempty"`
 	WorkspaceRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"workspaceRef,omitempty"`
 }
@@ -44,10 +45,10 @@ type LoggingConfigurationStatus struct {
 	// resource
 	// +kubebuilder:validation:Optional
 	Conditions []*ackv1alpha1.Condition `json:"conditions"`
-	// Status code of the logging configuration.
+	// The current status of the logging configuration.
 	// +kubebuilder:validation:Optional
 	StatusCode *string `json:"statusCode,omitempty"`
-	// The reason for failure if any.
+	// If failed, the reason for the failure.
 	// +kubebuilder:validation:Optional
 	StatusReason *string `json:"statusReason,omitempty"`
 }
