@@ -90,9 +90,17 @@ rules:
   - alertmanagerdefinitions/status
   - loggingconfigurations/status
   - rulegroupsnamespaces/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - prometheusservice.services.k8s.aws
+  resources:
   - workspaces/status
   verbs:
   - get
+  - list
   - patch
   - update
 - apiGroups:

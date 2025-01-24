@@ -23,7 +23,8 @@ import (
 	ackcondition "github.com/aws-controllers-k8s/runtime/pkg/condition"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	svcsdk "github.com/aws/aws-sdk-go/service/prometheusservice"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/amp"
 	corev1 "k8s.io/api/core/v1"
 
 	svcapitypes "github.com/aws-controllers-k8s/prometheusservice-controller/apis/v1alpha1"
@@ -183,7 +184,7 @@ func (rm *resourceManager) updateAlertManagerDefinitionData(
 			WorkspaceId: desired.ko.Spec.WorkspaceID,
 		}
 
-		resp, err := rm.sdkapi.PutAlertManagerDefinitionWithContext(ctx, input)
+		resp, err := rm.sdkapi.PutAlertManagerDefinition(ctx, input)
 		rm.metrics.RecordAPICall("UPDATE", "putAlertManagerDefinition", err)
 		if err != nil {
 			return nil, err
@@ -193,8 +194,8 @@ func (rm *resourceManager) updateAlertManagerDefinitionData(
 
 		// Check the status of the alert manager definition
 		if resp.Status != nil {
-			if resp.Status.StatusCode != nil {
-				ko.Status.StatusCode = resp.Status.StatusCode
+			if resp.Status.StatusCode != "" {
+				ko.Status.StatusCode = aws.String(string(resp.Status.StatusCode))
 			} else {
 				ko.Status.StatusCode = nil
 			}

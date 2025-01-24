@@ -28,8 +28,9 @@ import (
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	"github.com/aws/aws-sdk-go/aws"
-	svcsdk "github.com/aws/aws-sdk-go/service/prometheusservice"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/amp"
+	smithy "github.com/aws/smithy-go"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -40,8 +41,7 @@ import (
 var (
 	_ = &metav1.Time{}
 	_ = strings.ToLower("")
-	_ = &aws.JSONValue{}
-	_ = &svcsdk.PrometheusService{}
+	_ = &svcsdk.Client{}
 	_ = &svcapitypes.LoggingConfiguration{}
 	_ = ackv1alpha1.AWSAccountID("")
 	_ = &ackerr.NotFound
@@ -49,6 +49,7 @@ var (
 	_ = &reflect.Value{}
 	_ = fmt.Sprintf("")
 	_ = &ackrequeue.NoRequeue{}
+	_ = &aws.Config{}
 )
 
 // sdkFind returns SDK-specific information about a supplied resource
@@ -74,13 +75,11 @@ func (rm *resourceManager) sdkFind(
 	}
 
 	var resp *svcsdk.DescribeLoggingConfigurationOutput
-	resp, err = rm.sdkapi.DescribeLoggingConfigurationWithContext(ctx, input)
+	resp, err = rm.sdkapi.DescribeLoggingConfiguration(ctx, input)
 	rm.metrics.RecordAPICall("READ_ONE", "DescribeLoggingConfiguration", err)
 	if err != nil {
-		if reqErr, ok := ackerr.AWSRequestFailure(err); ok && reqErr.StatusCode() == 404 {
-			return nil, ackerr.NotFound
-		}
-		if awsErr, ok := ackerr.AWSError(err); ok && awsErr.Code() == "ResourceNotFoundException" {
+		var awsErr smithy.APIError
+		if errors.As(err, &awsErr) && awsErr.ErrorCode() == "ResourceNotFoundException" {
 			return nil, ackerr.NotFound
 		}
 		return nil, err
@@ -99,7 +98,7 @@ func (rm *resourceManager) sdkFind(
 	rm.setStatusDefaults(ko)
 	// To avoid having logging configuration statusCode stuck in CREATING we can
 	// update the status when calling sdkFind
-	ko.Status.StatusCode = resp.LoggingConfiguration.Status.StatusCode
+	ko.Status.StatusCode = aws.String(string(resp.LoggingConfiguration.Status.StatusCode))
 	return &resource{ko}, nil
 }
 
@@ -121,7 +120,7 @@ func (rm *resourceManager) newDescribeRequestPayload(
 	res := &svcsdk.DescribeLoggingConfigurationInput{}
 
 	if r.ko.Spec.WorkspaceID != nil {
-		res.SetWorkspaceId(*r.ko.Spec.WorkspaceID)
+		res.WorkspaceId = r.ko.Spec.WorkspaceID
 	}
 
 	return res, nil
@@ -146,7 +145,7 @@ func (rm *resourceManager) sdkCreate(
 
 	var resp *svcsdk.CreateLoggingConfigurationOutput
 	_ = resp
-	resp, err = rm.sdkapi.CreateLoggingConfigurationWithContext(ctx, input)
+	resp, err = rm.sdkapi.CreateLoggingConfiguration(ctx, input)
 	rm.metrics.RecordAPICall("CREATE", "CreateLoggingConfiguration", err)
 	if err != nil {
 		return nil, err
@@ -155,8 +154,8 @@ func (rm *resourceManager) sdkCreate(
 	// the original Kubernetes object we passed to the function
 	ko := desired.ko.DeepCopy()
 
-	if resp.Status.StatusCode != nil {
-		ko.Status.StatusCode = resp.Status.StatusCode
+	if resp.Status.StatusCode != "" {
+		ko.Status.StatusCode = aws.String(string(resp.Status.StatusCode))
 	} else {
 		ko.Status.StatusCode = nil
 	}
@@ -189,10 +188,10 @@ func (rm *resourceManager) newCreateRequestPayload(
 	res := &svcsdk.CreateLoggingConfigurationInput{}
 
 	if r.ko.Spec.LogGroupARN != nil {
-		res.SetLogGroupArn(*r.ko.Spec.LogGroupARN)
+		res.LogGroupArn = r.ko.Spec.LogGroupARN
 	}
 	if r.ko.Spec.WorkspaceID != nil {
-		res.SetWorkspaceId(*r.ko.Spec.WorkspaceID)
+		res.WorkspaceId = r.ko.Spec.WorkspaceID
 	}
 
 	return res, nil
@@ -222,7 +221,7 @@ func (rm *resourceManager) sdkUpdate(
 
 	var resp *svcsdk.UpdateLoggingConfigurationOutput
 	_ = resp
-	resp, err = rm.sdkapi.UpdateLoggingConfigurationWithContext(ctx, input)
+	resp, err = rm.sdkapi.UpdateLoggingConfiguration(ctx, input)
 	rm.metrics.RecordAPICall("UPDATE", "UpdateLoggingConfiguration", err)
 	if err != nil {
 		return nil, err
@@ -231,8 +230,8 @@ func (rm *resourceManager) sdkUpdate(
 	// the original Kubernetes object we passed to the function
 	ko := desired.ko.DeepCopy()
 
-	if resp.Status.StatusCode != nil {
-		ko.Status.StatusCode = resp.Status.StatusCode
+	if resp.Status.StatusCode != "" {
+		ko.Status.StatusCode = aws.String(string(resp.Status.StatusCode))
 	} else {
 		ko.Status.StatusCode = nil
 	}
@@ -256,10 +255,10 @@ func (rm *resourceManager) newUpdateRequestPayload(
 	res := &svcsdk.UpdateLoggingConfigurationInput{}
 
 	if r.ko.Spec.LogGroupARN != nil {
-		res.SetLogGroupArn(*r.ko.Spec.LogGroupARN)
+		res.LogGroupArn = r.ko.Spec.LogGroupARN
 	}
 	if r.ko.Spec.WorkspaceID != nil {
-		res.SetWorkspaceId(*r.ko.Spec.WorkspaceID)
+		res.WorkspaceId = r.ko.Spec.WorkspaceID
 	}
 
 	return res, nil
@@ -281,7 +280,7 @@ func (rm *resourceManager) sdkDelete(
 	}
 	var resp *svcsdk.DeleteLoggingConfigurationOutput
 	_ = resp
-	resp, err = rm.sdkapi.DeleteLoggingConfigurationWithContext(ctx, input)
+	resp, err = rm.sdkapi.DeleteLoggingConfiguration(ctx, input)
 	rm.metrics.RecordAPICall("DELETE", "DeleteLoggingConfiguration", err)
 	return nil, err
 }
@@ -294,7 +293,7 @@ func (rm *resourceManager) newDeleteRequestPayload(
 	res := &svcsdk.DeleteLoggingConfigurationInput{}
 
 	if r.ko.Spec.WorkspaceID != nil {
-		res.SetWorkspaceId(*r.ko.Spec.WorkspaceID)
+		res.WorkspaceId = r.ko.Spec.WorkspaceID
 	}
 
 	return res, nil

@@ -28,8 +28,9 @@ import (
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	"github.com/aws/aws-sdk-go/aws"
-	svcsdk "github.com/aws/aws-sdk-go/service/prometheusservice"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/amp"
+	smithy "github.com/aws/smithy-go"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -40,8 +41,7 @@ import (
 var (
 	_ = &metav1.Time{}
 	_ = strings.ToLower("")
-	_ = &aws.JSONValue{}
-	_ = &svcsdk.PrometheusService{}
+	_ = &svcsdk.Client{}
 	_ = &svcapitypes.Workspace{}
 	_ = ackv1alpha1.AWSAccountID("")
 	_ = &ackerr.NotFound
@@ -49,6 +49,7 @@ var (
 	_ = &reflect.Value{}
 	_ = fmt.Sprintf("")
 	_ = &ackrequeue.NoRequeue{}
+	_ = &aws.Config{}
 )
 
 // sdkFind returns SDK-specific information about a supplied resource
@@ -74,13 +75,11 @@ func (rm *resourceManager) sdkFind(
 	}
 
 	var resp *svcsdk.DescribeWorkspaceOutput
-	resp, err = rm.sdkapi.DescribeWorkspaceWithContext(ctx, input)
+	resp, err = rm.sdkapi.DescribeWorkspace(ctx, input)
 	rm.metrics.RecordAPICall("READ_ONE", "DescribeWorkspace", err)
 	if err != nil {
-		if reqErr, ok := ackerr.AWSRequestFailure(err); ok && reqErr.StatusCode() == 404 {
-			return nil, ackerr.NotFound
-		}
-		if awsErr, ok := ackerr.AWSError(err); ok && awsErr.Code() == "ResourceNotFoundException" {
+		var awsErr smithy.APIError
+		if errors.As(err, &awsErr) && awsErr.ErrorCode() == "ResourceNotFoundException" {
 			return nil, ackerr.NotFound
 		}
 		return nil, err
@@ -103,22 +102,16 @@ func (rm *resourceManager) sdkFind(
 		ko.Status.ACKResourceMetadata.ARN = &arn
 	}
 	if resp.Workspace.Status != nil {
-		f4 := &svcapitypes.WorkspaceStatus_SDK{}
-		if resp.Workspace.Status.StatusCode != nil {
-			f4.StatusCode = resp.Workspace.Status.StatusCode
+		f5 := &svcapitypes.WorkspaceStatus_SDK{}
+		if resp.Workspace.Status.StatusCode != "" {
+			f5.StatusCode = aws.String(string(resp.Workspace.Status.StatusCode))
 		}
-		ko.Status.Status = f4
+		ko.Status.Status = f5
 	} else {
 		ko.Status.Status = nil
 	}
 	if resp.Workspace.Tags != nil {
-		f5 := map[string]*string{}
-		for f5key, f5valiter := range resp.Workspace.Tags {
-			var f5val string
-			f5val = *f5valiter
-			f5[f5key] = &f5val
-		}
-		ko.Spec.Tags = f5
+		ko.Spec.Tags = aws.StringMap(resp.Workspace.Tags)
 	} else {
 		ko.Spec.Tags = nil
 	}
@@ -150,7 +143,7 @@ func (rm *resourceManager) newDescribeRequestPayload(
 	res := &svcsdk.DescribeWorkspaceInput{}
 
 	if r.ko.Status.WorkspaceID != nil {
-		res.SetWorkspaceId(*r.ko.Status.WorkspaceID)
+		res.WorkspaceId = r.ko.Status.WorkspaceID
 	}
 
 	return res, nil
@@ -175,7 +168,7 @@ func (rm *resourceManager) sdkCreate(
 
 	var resp *svcsdk.CreateWorkspaceOutput
 	_ = resp
-	resp, err = rm.sdkapi.CreateWorkspaceWithContext(ctx, input)
+	resp, err = rm.sdkapi.CreateWorkspace(ctx, input)
 	rm.metrics.RecordAPICall("CREATE", "CreateWorkspace", err)
 	if err != nil {
 		return nil, err
@@ -193,21 +186,15 @@ func (rm *resourceManager) sdkCreate(
 	}
 	if resp.Status != nil {
 		f1 := &svcapitypes.WorkspaceStatus_SDK{}
-		if resp.Status.StatusCode != nil {
-			f1.StatusCode = resp.Status.StatusCode
+		if resp.Status.StatusCode != "" {
+			f1.StatusCode = aws.String(string(resp.Status.StatusCode))
 		}
 		ko.Status.Status = f1
 	} else {
 		ko.Status.Status = nil
 	}
 	if resp.Tags != nil {
-		f2 := map[string]*string{}
-		for f2key, f2valiter := range resp.Tags {
-			var f2val string
-			f2val = *f2valiter
-			f2[f2key] = &f2val
-		}
-		ko.Spec.Tags = f2
+		ko.Spec.Tags = aws.StringMap(resp.Tags)
 	} else {
 		ko.Spec.Tags = nil
 	}
@@ -240,16 +227,10 @@ func (rm *resourceManager) newCreateRequestPayload(
 	res := &svcsdk.CreateWorkspaceInput{}
 
 	if r.ko.Spec.Alias != nil {
-		res.SetAlias(*r.ko.Spec.Alias)
+		res.Alias = r.ko.Spec.Alias
 	}
 	if r.ko.Spec.Tags != nil {
-		f1 := map[string]*string{}
-		for f1key, f1valiter := range r.ko.Spec.Tags {
-			var f1val string
-			f1val = *f1valiter
-			f1[f1key] = &f1val
-		}
-		res.SetTags(f1)
+		res.Tags = aws.ToStringMap(r.ko.Spec.Tags)
 	}
 
 	return res, nil
@@ -282,7 +263,7 @@ func (rm *resourceManager) sdkDelete(
 	}
 	var resp *svcsdk.DeleteWorkspaceOutput
 	_ = resp
-	resp, err = rm.sdkapi.DeleteWorkspaceWithContext(ctx, input)
+	resp, err = rm.sdkapi.DeleteWorkspace(ctx, input)
 	rm.metrics.RecordAPICall("DELETE", "DeleteWorkspace", err)
 	return nil, err
 }
@@ -295,7 +276,7 @@ func (rm *resourceManager) newDeleteRequestPayload(
 	res := &svcsdk.DeleteWorkspaceInput{}
 
 	if r.ko.Status.WorkspaceID != nil {
-		res.SetWorkspaceId(*r.ko.Status.WorkspaceID)
+		res.WorkspaceId = r.ko.Status.WorkspaceID
 	}
 
 	return res, nil

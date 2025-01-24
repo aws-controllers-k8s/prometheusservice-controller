@@ -28,8 +28,9 @@ import (
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	"github.com/aws/aws-sdk-go/aws"
-	svcsdk "github.com/aws/aws-sdk-go/service/prometheusservice"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/amp"
+	smithy "github.com/aws/smithy-go"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -40,8 +41,7 @@ import (
 var (
 	_ = &metav1.Time{}
 	_ = strings.ToLower("")
-	_ = &aws.JSONValue{}
-	_ = &svcsdk.PrometheusService{}
+	_ = &svcsdk.Client{}
 	_ = &svcapitypes.RuleGroupsNamespace{}
 	_ = ackv1alpha1.AWSAccountID("")
 	_ = &ackerr.NotFound
@@ -49,6 +49,7 @@ var (
 	_ = &reflect.Value{}
 	_ = fmt.Sprintf("")
 	_ = &ackrequeue.NoRequeue{}
+	_ = &aws.Config{}
 )
 
 // sdkFind returns SDK-specific information about a supplied resource
@@ -74,13 +75,11 @@ func (rm *resourceManager) sdkFind(
 	}
 
 	var resp *svcsdk.DescribeRuleGroupsNamespaceOutput
-	resp, err = rm.sdkapi.DescribeRuleGroupsNamespaceWithContext(ctx, input)
+	resp, err = rm.sdkapi.DescribeRuleGroupsNamespace(ctx, input)
 	rm.metrics.RecordAPICall("READ_ONE", "DescribeRuleGroupsNamespace", err)
 	if err != nil {
-		if reqErr, ok := ackerr.AWSRequestFailure(err); ok && reqErr.StatusCode() == 404 {
-			return nil, ackerr.NotFound
-		}
-		if awsErr, ok := ackerr.AWSError(err); ok && awsErr.Code() == "ResourceNotFoundException" {
+		var awsErr smithy.APIError
+		if errors.As(err, &awsErr) && awsErr.ErrorCode() == "ResourceNotFoundException" {
 			return nil, ackerr.NotFound
 		}
 		return nil, err
@@ -118,8 +117,8 @@ func (rm *resourceManager) sdkFind(
 	}
 	if resp.RuleGroupsNamespace.Status != nil {
 		f5 := &svcapitypes.RuleGroupsNamespaceStatus_SDK{}
-		if resp.RuleGroupsNamespace.Status.StatusCode != nil {
-			f5.StatusCode = resp.RuleGroupsNamespace.Status.StatusCode
+		if resp.RuleGroupsNamespace.Status.StatusCode != "" {
+			f5.StatusCode = aws.String(string(resp.RuleGroupsNamespace.Status.StatusCode))
 		}
 		if resp.RuleGroupsNamespace.Status.StatusReason != nil {
 			f5.StatusReason = resp.RuleGroupsNamespace.Status.StatusReason
@@ -129,13 +128,7 @@ func (rm *resourceManager) sdkFind(
 		ko.Status.Status = nil
 	}
 	if resp.RuleGroupsNamespace.Tags != nil {
-		f6 := map[string]*string{}
-		for f6key, f6valiter := range resp.RuleGroupsNamespace.Tags {
-			var f6val string
-			f6val = *f6valiter
-			f6[f6key] = &f6val
-		}
-		ko.Spec.Tags = f6
+		ko.Spec.Tags = aws.StringMap(resp.RuleGroupsNamespace.Tags)
 	} else {
 		ko.Spec.Tags = nil
 	}
@@ -162,10 +155,10 @@ func (rm *resourceManager) newDescribeRequestPayload(
 	res := &svcsdk.DescribeRuleGroupsNamespaceInput{}
 
 	if r.ko.Spec.Name != nil {
-		res.SetName(*r.ko.Spec.Name)
+		res.Name = r.ko.Spec.Name
 	}
 	if r.ko.Spec.WorkspaceID != nil {
-		res.SetWorkspaceId(*r.ko.Spec.WorkspaceID)
+		res.WorkspaceId = r.ko.Spec.WorkspaceID
 	}
 
 	return res, nil
@@ -197,7 +190,7 @@ func (rm *resourceManager) sdkCreate(
 
 	var resp *svcsdk.CreateRuleGroupsNamespaceOutput
 	_ = resp
-	resp, err = rm.sdkapi.CreateRuleGroupsNamespaceWithContext(ctx, input)
+	resp, err = rm.sdkapi.CreateRuleGroupsNamespace(ctx, input)
 	rm.metrics.RecordAPICall("CREATE", "CreateRuleGroupsNamespace", err)
 	if err != nil {
 		return nil, err
@@ -220,8 +213,8 @@ func (rm *resourceManager) sdkCreate(
 	}
 	if resp.Status != nil {
 		f2 := &svcapitypes.RuleGroupsNamespaceStatus_SDK{}
-		if resp.Status.StatusCode != nil {
-			f2.StatusCode = resp.Status.StatusCode
+		if resp.Status.StatusCode != "" {
+			f2.StatusCode = aws.String(string(resp.Status.StatusCode))
 		}
 		if resp.Status.StatusReason != nil {
 			f2.StatusReason = resp.Status.StatusReason
@@ -231,13 +224,7 @@ func (rm *resourceManager) sdkCreate(
 		ko.Status.Status = nil
 	}
 	if resp.Tags != nil {
-		f3 := map[string]*string{}
-		for f3key, f3valiter := range resp.Tags {
-			var f3val string
-			f3val = *f3valiter
-			f3[f3key] = &f3val
-		}
-		ko.Spec.Tags = f3
+		ko.Spec.Tags = aws.StringMap(resp.Tags)
 	} else {
 		ko.Spec.Tags = nil
 	}
@@ -266,19 +253,13 @@ func (rm *resourceManager) newCreateRequestPayload(
 	res := &svcsdk.CreateRuleGroupsNamespaceInput{}
 
 	if r.ko.Spec.Name != nil {
-		res.SetName(*r.ko.Spec.Name)
+		res.Name = r.ko.Spec.Name
 	}
 	if r.ko.Spec.Tags != nil {
-		f1 := map[string]*string{}
-		for f1key, f1valiter := range r.ko.Spec.Tags {
-			var f1val string
-			f1val = *f1valiter
-			f1[f1key] = &f1val
-		}
-		res.SetTags(f1)
+		res.Tags = aws.ToStringMap(r.ko.Spec.Tags)
 	}
 	if r.ko.Spec.WorkspaceID != nil {
-		res.SetWorkspaceId(*r.ko.Spec.WorkspaceID)
+		res.WorkspaceId = r.ko.Spec.WorkspaceID
 	}
 
 	return res, nil
@@ -311,7 +292,7 @@ func (rm *resourceManager) sdkDelete(
 	}
 	var resp *svcsdk.DeleteRuleGroupsNamespaceOutput
 	_ = resp
-	resp, err = rm.sdkapi.DeleteRuleGroupsNamespaceWithContext(ctx, input)
+	resp, err = rm.sdkapi.DeleteRuleGroupsNamespace(ctx, input)
 	rm.metrics.RecordAPICall("DELETE", "DeleteRuleGroupsNamespace", err)
 	return nil, err
 }
@@ -324,10 +305,10 @@ func (rm *resourceManager) newDeleteRequestPayload(
 	res := &svcsdk.DeleteRuleGroupsNamespaceInput{}
 
 	if r.ko.Spec.Name != nil {
-		res.SetName(*r.ko.Spec.Name)
+		res.Name = r.ko.Spec.Name
 	}
 	if r.ko.Spec.WorkspaceID != nil {
-		res.SetWorkspaceId(*r.ko.Spec.WorkspaceID)
+		res.WorkspaceId = r.ko.Spec.WorkspaceID
 	}
 
 	return res, nil
@@ -435,11 +416,12 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 	if err == nil {
 		return false
 	}
-	awsErr, ok := ackerr.AWSError(err)
-	if !ok {
+
+	var terminalErr smithy.APIError
+	if !errors.As(err, &terminalErr) {
 		return false
 	}
-	switch awsErr.Code() {
+	switch terminalErr.ErrorCode() {
 	case "ValidationException":
 		return true
 	default:
