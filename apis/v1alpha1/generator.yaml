@@ -1,6 +1,10 @@
 ignore:
+  resource_names:
+   - Scraper 
   field_paths:
     - CreateWorkspaceInput.ClientToken
+    - CreateWorkspaceInput.KmsKeyArn
+    - CreateWorkspaceOutput.KmsKeyArn
     - CreateRuleGroupsNamespaceInput.ClientToken
     - CreateRuleGroupsNamespaceInput.Data
     - CreateAlertManagerDefinitionInput.ClientToken
@@ -118,4 +122,5 @@ resources:
     tags:
       ignore: true
 sdk_names:
-  model_name: amp 
+  model_name: amp
+  package_name: amp

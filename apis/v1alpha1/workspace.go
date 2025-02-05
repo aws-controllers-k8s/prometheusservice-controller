@@ -23,10 +23,13 @@ import (
 // WorkspaceSpec defines the desired state of Workspace.
 type WorkspaceSpec struct {
 
-	// An optional user-assigned alias for this workspace. This alias is for user
-	// reference and does not need to be unique.
+	// An alias that you assign to this workspace to help you identify it. It does
+	// not need to be unique.
+	//
+	// Blank spaces at the beginning or end of the alias that you specify will be
+	// trimmed from the value used.
 	Alias *string `json:"alias,omitempty"`
-	// Optional, user-provided tags for this workspace.
+	// The list of tag keys and values to associate with the workspace.
 	Tags map[string]*string `json:"tags,omitempty"`
 }
 
@@ -43,10 +46,11 @@ type WorkspaceStatus struct {
 	// resource
 	// +kubebuilder:validation:Optional
 	Conditions []*ackv1alpha1.Condition `json:"conditions"`
-	// The status of the workspace that was just created (usually CREATING).
+	// The current status of the new workspace. Immediately after you create the
+	// workspace, the status is usually CREATING.
 	// +kubebuilder:validation:Optional
 	Status *WorkspaceStatus_SDK `json:"status,omitempty"`
-	// The generated ID of the workspace that was just created.
+	// The unique ID for the new workspace.
 	// +kubebuilder:validation:Optional
 	WorkspaceID *string `json:"workspaceID,omitempty"`
 }

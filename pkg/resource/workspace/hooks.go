@@ -21,7 +21,8 @@ import (
 	ackcondition "github.com/aws-controllers-k8s/runtime/pkg/condition"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	svcsdk "github.com/aws/aws-sdk-go/service/prometheusservice"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/amp"
 	corev1 "k8s.io/api/core/v1"
 
 	svcapitypes "github.com/aws-controllers-k8s/prometheusservice-controller/apis/v1alpha1"
@@ -115,10 +116,10 @@ func (rm *resourceManager) updateWorkspaceTags(
 
 		input := &svcsdk.UntagResourceInput{
 			ResourceArn: (*string)(desired.ko.Status.ACKResourceMetadata.ARN),
-			TagKeys:     removeTags,
+			TagKeys:     aws.ToStringSlice(removeTags),
 		}
 
-		_, err = rm.sdkapi.UntagResourceWithContext(ctx, input)
+		_, err = rm.sdkapi.UntagResource(ctx, input)
 		rm.metrics.RecordAPICall("UPDATE", "UntagResource", err)
 		if err != nil {
 			return err
@@ -128,9 +129,9 @@ func (rm *resourceManager) updateWorkspaceTags(
 	if len(addedOrUpdated) > 0 {
 		input := &svcsdk.TagResourceInput{
 			ResourceArn: (*string)(desired.ko.Status.ACKResourceMetadata.ARN),
-			Tags:        addedOrUpdated,
+			Tags:        aws.ToStringMap(addedOrUpdated),
 		}
-		_, err = rm.sdkapi.TagResourceWithContext(ctx, input)
+		_, err = rm.sdkapi.TagResource(ctx, input)
 		rm.metrics.RecordAPICall("UPDATE", "TagResource", err)
 		if err != nil {
 			return err
@@ -157,7 +158,7 @@ func (rm *resourceManager) updateWorkspaceAlias(
 		Alias:       desired.ko.Spec.Alias,
 	}
 
-	_, err = rm.sdkapi.UpdateWorkspaceAliasWithContext(ctx, input)
+	_, err = rm.sdkapi.UpdateWorkspaceAlias(ctx, input)
 	rm.metrics.RecordAPICall("UPDATE", "UpdateWorkspaceAlias", err)
 	if err != nil {
 		return err

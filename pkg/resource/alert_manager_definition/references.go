@@ -30,6 +30,9 @@ import (
 	svcapitypes "github.com/aws-controllers-k8s/prometheusservice-controller/apis/v1alpha1"
 )
 
+// +kubebuilder:rbac:groups=prometheusservice.services.k8s.aws,resources=workspaces,verbs=get;list
+// +kubebuilder:rbac:groups=prometheusservice.services.k8s.aws,resources=workspaces/status,verbs=get;list
+
 // ClearResolvedReferences removes any reference values that were made
 // concrete in the spec. It returns a copy of the input AWSResource which
 // contains the original *Ref values, but none of their respective concrete

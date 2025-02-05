@@ -28,42 +28,53 @@ var (
 	_ = ackv1alpha1.AWSAccountID("")
 )
 
-// Represents the properties of an alert manager definition.
+// The details of an alert manager definition. It is the configuration for the
+// alert manager, including information about receivers for routing alerts.
 type AlertManagerDefinitionDescription struct {
 	CreatedAt *metav1.Time `json:"createdAt,omitempty"`
-	// The alert manager definition data.
+	// The base-64 encoded blob that is alert manager definition.
+	//
+	// For details about the alert manager definition, see AlertManagedDefinitionData
+	// (https://docs.aws.amazon.com/prometheus/latest/APIReference/yaml-AlertManagerDefinitionData.html).
 	Data       []byte       `json:"data,omitempty"`
 	ModifiedAt *metav1.Time `json:"modifiedAt,omitempty"`
-	// Represents the status of a definition.
+	// The status of the alert manager.
 	Status *AlertManagerDefinitionStatus_SDK `json:"status,omitempty"`
 }
 
-// Represents the status of a definition.
+// The status of the alert manager.
 type AlertManagerDefinitionStatus_SDK struct {
-	// State of an alert manager definition.
+	// State of an AlertManagerDefinition.
 	StatusCode   *string `json:"statusCode,omitempty"`
 	StatusReason *string `json:"statusReason,omitempty"`
 }
 
-// Represents the properties of a logging configuration metadata.
+// The AmpConfiguration structure defines the Amazon Managed Service for Prometheus
+// instance a scraper should send metrics to.
+type AmpConfiguration struct {
+	// An ARN identifying a Workspace.
+	WorkspaceARN *string `json:"workspaceARN,omitempty"`
+}
+
+// Contains information about the logging configuration for the workspace.
 type LoggingConfigurationMetadata struct {
 	CreatedAt   *metav1.Time `json:"createdAt,omitempty"`
 	LogGroupARN *string      `json:"logGroupARN,omitempty"`
 	ModifiedAt  *metav1.Time `json:"modifiedAt,omitempty"`
-	// Represents the status of a logging configuration.
+	// The status of the logging configuration.
 	Status *LoggingConfigurationStatus_SDK `json:"status,omitempty"`
 	// A workspace ID.
 	Workspace *string `json:"workspace,omitempty"`
 }
 
-// Represents the status of a logging configuration.
+// The status of the logging configuration.
 type LoggingConfigurationStatus_SDK struct {
 	// State of a logging configuration.
 	StatusCode   *string `json:"statusCode,omitempty"`
 	StatusReason *string `json:"statusReason,omitempty"`
 }
 
-// Represents a description of the rule groups namespace.
+// The details about one rule groups namespace.
 type RuleGroupsNamespaceDescription struct {
 	// An ARN identifying a rule groups namespace.
 	ARN       *string      `json:"arn,omitempty"`
@@ -71,74 +82,98 @@ type RuleGroupsNamespaceDescription struct {
 	// The rule groups namespace data.
 	Data       []byte       `json:"data,omitempty"`
 	ModifiedAt *metav1.Time `json:"modifiedAt,omitempty"`
-	// The namespace name that the rule group belong to.
+	// The name of the namespace that the rule group belong to.
 	Name *string `json:"name,omitempty"`
-	// Represents the status of a namespace.
+	// The status information about a rule groups namespace.
 	Status *RuleGroupsNamespaceStatus_SDK `json:"status,omitempty"`
-	// The list of tags assigned to the resource.
+	// A tag associated with a resource.
 	Tags map[string]*string `json:"tags,omitempty"`
 }
 
-// Represents the status of a namespace.
+// The status information about a rule groups namespace.
 type RuleGroupsNamespaceStatus_SDK struct {
 	// State of a namespace.
 	StatusCode   *string `json:"statusCode,omitempty"`
 	StatusReason *string `json:"statusReason,omitempty"`
 }
 
-// Represents a summary of the rule groups namespace.
+// The high-level information about a rule groups namespace. To retrieve more
+// information, use DescribeRuleGroupsNamespace.
 type RuleGroupsNamespaceSummary struct {
 	// An ARN identifying a rule groups namespace.
 	ARN        *string      `json:"arn,omitempty"`
 	CreatedAt  *metav1.Time `json:"createdAt,omitempty"`
 	ModifiedAt *metav1.Time `json:"modifiedAt,omitempty"`
-	// The namespace name that the rule group belong to.
+	// The name of the namespace that the rule group belong to.
 	Name *string `json:"name,omitempty"`
-	// Represents the status of a namespace.
+	// The status information about a rule groups namespace.
 	Status *RuleGroupsNamespaceStatus_SDK `json:"status,omitempty"`
-	// The list of tags assigned to the resource.
+	// A tag associated with a resource.
 	Tags map[string]*string `json:"tags,omitempty"`
 }
 
-// Stores information about a field passed inside a request that resulted in
-// an exception.
+// The ScraperDescription structure contains the full details about one scraper
+// in your account.
+type ScraperDescription struct {
+	CreatedAt      *metav1.Time `json:"createdAt,omitempty"`
+	LastModifiedAt *metav1.Time `json:"lastModifiedAt,omitempty"`
+	// A tag associated with a resource.
+	Tags map[string]*string `json:"tags,omitempty"`
+}
+
+// The ScraperSummary structure contains a summary of the details about one
+// scraper in your account.
+type ScraperSummary struct {
+	CreatedAt      *metav1.Time `json:"createdAt,omitempty"`
+	LastModifiedAt *metav1.Time `json:"lastModifiedAt,omitempty"`
+	// A tag associated with a resource.
+	Tags map[string]*string `json:"tags,omitempty"`
+}
+
+// Information about a field passed into a request that resulted in an exception.
 type ValidationExceptionField struct {
 	Message *string `json:"message,omitempty"`
 	Name    *string `json:"name,omitempty"`
 }
 
-// Represents the properties of a workspace.
+// The full details about one Amazon Managed Service for Prometheus workspace
+// in your account.
 type WorkspaceDescription struct {
 	// A user-assigned workspace alias.
 	Alias *string `json:"alias,omitempty"`
 	// An ARN identifying a Workspace.
-	ARN                *string      `json:"arn,omitempty"`
-	CreatedAt          *metav1.Time `json:"createdAt,omitempty"`
-	PrometheusEndpoint *string      `json:"prometheusEndpoint,omitempty"`
-	// Represents the status of a workspace.
+	ARN       *string      `json:"arn,omitempty"`
+	CreatedAt *metav1.Time `json:"createdAt,omitempty"`
+	// A KMS Key ARN.
+	KMSKeyARN          *string `json:"kmsKeyARN,omitempty"`
+	PrometheusEndpoint *string `json:"prometheusEndpoint,omitempty"`
+	// The status of the workspace.
 	Status *WorkspaceStatus_SDK `json:"status,omitempty"`
-	// The list of tags assigned to the resource.
+	// A tag associated with a resource.
 	Tags map[string]*string `json:"tags,omitempty"`
 	// A workspace ID.
 	WorkspaceID *string `json:"workspaceID,omitempty"`
 }
 
-// Represents the status of a workspace.
+// The status of the workspace.
 type WorkspaceStatus_SDK struct {
 	// State of a workspace.
 	StatusCode *string `json:"statusCode,omitempty"`
 }
 
-// Represents a summary of the properties of a workspace.
+// The information about one Amazon Managed Service for Prometheus workspace
+// in your account.
 type WorkspaceSummary struct {
 	// A user-assigned workspace alias.
 	Alias *string `json:"alias,omitempty"`
 	// An ARN identifying a Workspace.
 	ARN       *string      `json:"arn,omitempty"`
 	CreatedAt *metav1.Time `json:"createdAt,omitempty"`
-	// Represents the status of a workspace.
+	// A KMS Key ARN.
+	KMSKeyARN *string `json:"kmsKeyARN,omitempty"`
+	// The status of the workspace.
 	Status *WorkspaceStatus_SDK `json:"status,omitempty"`
-	// The list of tags assigned to the resource.
+	// A tag associated with a resource.
 	Tags map[string]*string `json:"tags,omitempty"`
 	// A workspace ID.
 	WorkspaceID *string `json:"workspaceID,omitempty"`

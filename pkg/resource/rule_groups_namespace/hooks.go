@@ -23,7 +23,8 @@ import (
 	ackcondition "github.com/aws-controllers-k8s/runtime/pkg/condition"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	svcsdk "github.com/aws/aws-sdk-go/service/prometheusservice"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/amp"
 	corev1 "k8s.io/api/core/v1"
 
 	svcapitypes "github.com/aws-controllers-k8s/prometheusservice-controller/apis/v1alpha1"
@@ -184,10 +185,10 @@ func (rm *resourceManager) updateRuleGroupsNamespaceTags(
 
 		input := &svcsdk.UntagResourceInput{
 			ResourceArn: (*string)(desired.ko.Status.ACKResourceMetadata.ARN),
-			TagKeys:     removeTags,
+			TagKeys:     aws.ToStringSlice(removeTags),
 		}
 
-		_, err = rm.sdkapi.UntagResourceWithContext(ctx, input)
+		_, err = rm.sdkapi.UntagResource(ctx, input)
 		rm.metrics.RecordAPICall("UPDATE", "UntagResource", err)
 		if err != nil {
 			return err
@@ -197,9 +198,9 @@ func (rm *resourceManager) updateRuleGroupsNamespaceTags(
 	if len(addedOrUpdated) > 0 {
 		input := &svcsdk.TagResourceInput{
 			ResourceArn: (*string)(desired.ko.Status.ACKResourceMetadata.ARN),
-			Tags:        addedOrUpdated,
+			Tags:        aws.ToStringMap(addedOrUpdated),
 		}
-		_, err = rm.sdkapi.TagResourceWithContext(ctx, input)
+		_, err = rm.sdkapi.TagResource(ctx, input)
 		rm.metrics.RecordAPICall("UPDATE", "TagResource", err)
 		if err != nil {
 			return err
@@ -235,7 +236,7 @@ func (rm *resourceManager) updateRuleGroupsNamespace(
 		Data:        configurationBytes,
 	}
 
-	resp, err := rm.sdkapi.PutRuleGroupsNamespaceWithContext(ctx, input)
+	resp, err := rm.sdkapi.PutRuleGroupsNamespace(ctx, input)
 	rm.metrics.RecordAPICall("UPDATE", "PutRuleGroupsNamespaceWithContext", err)
 	if err != nil {
 		return nil, err
@@ -259,8 +260,8 @@ func (rm *resourceManager) updateRuleGroupsNamespace(
 	}
 	if resp.Status != nil {
 		f2 := &svcapitypes.RuleGroupsNamespaceStatus_SDK{}
-		if resp.Status.StatusCode != nil {
-			f2.StatusCode = resp.Status.StatusCode
+		if resp.Status.StatusCode != "" {
+			f2.StatusCode = aws.String(string(resp.Status.StatusCode))
 		}
 		if resp.Status.StatusReason != nil {
 			f2.StatusReason = resp.Status.StatusReason
@@ -272,9 +273,7 @@ func (rm *resourceManager) updateRuleGroupsNamespace(
 	if resp.Tags != nil {
 		f3 := map[string]*string{}
 		for f3key, f3valiter := range resp.Tags {
-			var f3val string
-			f3val = *f3valiter
-			f3[f3key] = &f3val
+			f3[f3key] = &f3valiter
 		}
 		ko.Spec.Tags = f3
 	} else {
