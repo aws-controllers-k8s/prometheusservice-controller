@@ -48,14 +48,12 @@ spec:
             description: LoggingConfigurationSpec defines the desired state of LoggingConfiguration.
             properties:
               logGroupARN:
-                description: |-
-                  The ARN of the CloudWatch log group to which the vended log data will be
-                  published. This log group must exist prior to calling this operation.
                 type: string
               workspaceID:
-                description: The ID of the workspace to create the logging configuration
-                  for.
                 type: string
+                x-kubernetes-validations:
+                - message: Value is immutable once set
+                  rule: self == oldSelf
               workspaceRef:
                 description: "AWSResourceReferenceWrapper provides a wrapper around
                   *AWSResourceReference\ntype to provide more user friendly syntax
@@ -111,7 +109,7 @@ spec:
                 type: object
               conditions:
                 description: |-
-                  All CRS managed by ACK have a common `Status.Conditions` member that
+                  All CRs managed by ACK have a common `Status.Conditions` member that
                   contains a collection of `ackv1alpha1.Condition` objects that describe
                   the various terminal states of the CR and its backend AWS service API
                   resource

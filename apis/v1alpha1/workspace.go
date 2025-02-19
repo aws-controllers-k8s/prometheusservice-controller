@@ -28,8 +28,10 @@ type WorkspaceSpec struct {
 	//
 	// Blank spaces at the beginning or end of the alias that you specify will be
 	// trimmed from the value used.
+
 	Alias *string `json:"alias,omitempty"`
 	// The list of tag keys and values to associate with the workspace.
+
 	Tags map[string]*string `json:"tags,omitempty"`
 }
 
@@ -40,7 +42,7 @@ type WorkspaceStatus struct {
 	// constructed ARN for the resource
 	// +kubebuilder:validation:Optional
 	ACKResourceMetadata *ackv1alpha1.ResourceMetadata `json:"ackResourceMetadata"`
-	// All CRS managed by ACK have a common `Status.Conditions` member that
+	// All CRs managed by ACK have a common `Status.Conditions` member that
 	// contains a collection of `ackv1alpha1.Condition` objects that describe
 	// the various terminal states of the CR and its backend AWS service API
 	// resource

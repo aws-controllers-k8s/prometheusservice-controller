@@ -24,9 +24,15 @@ import (
 type AlertManagerDefinitionSpec struct {
 
 	// The ID of the workspace to add the alert manager definition to.
-	WorkspaceID  *string                                  `json:"workspaceID,omitempty"`
+
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
+
+	WorkspaceID *string `json:"workspaceID,omitempty"`
+
 	WorkspaceRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"workspaceRef,omitempty"`
+
 	// +kubebuilder:validation:Required
+
 	Configuration *string `json:"configuration"`
 }
 
@@ -37,7 +43,7 @@ type AlertManagerDefinitionStatus struct {
 	// constructed ARN for the resource
 	// +kubebuilder:validation:Optional
 	ACKResourceMetadata *ackv1alpha1.ResourceMetadata `json:"ackResourceMetadata"`
-	// All CRS managed by ACK have a common `Status.Conditions` member that
+	// All CRs managed by ACK have a common `Status.Conditions` member that
 	// contains a collection of `ackv1alpha1.Condition` objects that describe
 	// the various terminal states of the CR and its backend AWS service API
 	// resource

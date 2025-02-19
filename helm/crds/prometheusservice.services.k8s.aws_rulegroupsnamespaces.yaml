@@ -49,17 +49,19 @@ spec:
               configuration:
                 type: string
               name:
-                description: The name for the new rule groups namespace.
                 type: string
+                x-kubernetes-validations:
+                - message: Value is immutable once set
+                  rule: self == oldSelf
               tags:
                 additionalProperties:
                   type: string
-                description: The list of tag keys and values to associate with the
-                  rule groups namespace.
                 type: object
               workspaceID:
-                description: The ID of the workspace to add the rule groups namespace.
                 type: string
+                x-kubernetes-validations:
+                - message: Value is immutable once set
+                  rule: self == oldSelf
               workspaceRef:
                 description: "AWSResourceReferenceWrapper provides a wrapper around
                   *AWSResourceReference\ntype to provide more user friendly syntax
@@ -115,7 +117,7 @@ spec:
                 type: object
               conditions:
                 description: |-
-                  All CRS managed by ACK have a common `Status.Conditions` member that
+                  All CRs managed by ACK have a common `Status.Conditions` member that
                   contains a collection of `ackv1alpha1.Condition` objects that describe
                   the various terminal states of the CR and its backend AWS service API
                   resource

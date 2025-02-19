@@ -24,14 +24,24 @@ import (
 type RuleGroupsNamespaceSpec struct {
 
 	// The name for the new rule groups namespace.
+
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
 	// +kubebuilder:validation:Required
+
 	Name *string `json:"name"`
 	// The list of tag keys and values to associate with the rule groups namespace.
+
 	Tags map[string]*string `json:"tags,omitempty"`
 	// The ID of the workspace to add the rule groups namespace.
-	WorkspaceID  *string                                  `json:"workspaceID,omitempty"`
+
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
+
+	WorkspaceID *string `json:"workspaceID,omitempty"`
+
 	WorkspaceRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"workspaceRef,omitempty"`
+
 	// +kubebuilder:validation:Required
+
 	Configuration *string `json:"configuration"`
 }
 
@@ -42,7 +52,7 @@ type RuleGroupsNamespaceStatus struct {
 	// constructed ARN for the resource
 	// +kubebuilder:validation:Optional
 	ACKResourceMetadata *ackv1alpha1.ResourceMetadata `json:"ackResourceMetadata"`
-	// All CRS managed by ACK have a common `Status.Conditions` member that
+	// All CRs managed by ACK have a common `Status.Conditions` member that
 	// contains a collection of `ackv1alpha1.Condition` objects that describe
 	// the various terminal states of the CR and its backend AWS service API
 	// resource

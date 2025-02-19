@@ -44,18 +44,10 @@ spec:
             description: WorkspaceSpec defines the desired state of Workspace.
             properties:
               alias:
-                description: |-
-                  An alias that you assign to this workspace to help you identify it. It does
-                  not need to be unique.
-
-                  Blank spaces at the beginning or end of the alias that you specify will be
-                  trimmed from the value used.
                 type: string
               tags:
                 additionalProperties:
                   type: string
-                description: The list of tag keys and values to associate with the
-                  workspace.
                 type: object
             type: object
           status:
@@ -92,7 +84,7 @@ spec:
                 type: object
               conditions:
                 description: |-
-                  All CRS managed by ACK have a common `Status.Conditions` member that
+                  All CRs managed by ACK have a common `Status.Conditions` member that
                   contains a collection of `ackv1alpha1.Condition` objects that describe
                   the various terminal states of the CR and its backend AWS service API
                   resource
