@@ -24,12 +24,16 @@ import (
 type RuleGroupsNamespaceSpec struct {
 
 	// The name for the new rule groups namespace.
+	//
+	// Regex Pattern: `[0-9A-Za-z][-.0-9A-Z_a-z]*`
 	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
 	// +kubebuilder:validation:Required
 	Name *string `json:"name"`
 	// The list of tag keys and values to associate with the rule groups namespace.
 	Tags map[string]*string `json:"tags,omitempty"`
 	// The ID of the workspace to add the rule groups namespace.
+	//
+	// Regex Pattern: `[0-9A-Za-z][-.0-9A-Z_a-z]*`
 	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
 	WorkspaceID  *string                                  `json:"workspaceID,omitempty"`
 	WorkspaceRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"workspaceRef,omitempty"`

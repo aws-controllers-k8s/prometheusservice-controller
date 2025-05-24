@@ -135,7 +135,10 @@ spec:
                     type: string
                 type: object
               workspaceID:
-                description: The unique ID for the new workspace.
+                description: |-
+                  The unique ID for the new workspace.
+
+                  Regex Pattern: `[0-9A-Za-z][-.0-9A-Z_a-z]*`
                 type: string
             type: object
         type: object

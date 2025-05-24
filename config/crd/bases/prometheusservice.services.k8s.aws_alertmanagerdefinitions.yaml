@@ -47,8 +47,10 @@ spec:
               configuration:
                 type: string
               workspaceID:
-                description: The ID of the workspace to add the alert manager definition
-                  to.
+                description: |-
+                  The ID of the workspace to add the alert manager definition to.
+
+                  Regex Pattern: `[0-9A-Za-z][-.0-9A-Z_a-z]*`
                 type: string
                 x-kubernetes-validations:
                 - message: Value is immutable once set
