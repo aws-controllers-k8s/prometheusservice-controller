@@ -24,6 +24,8 @@ import (
 type AlertManagerDefinitionSpec struct {
 
 	// The ID of the workspace to add the alert manager definition to.
+	//
+	// Regex Pattern: `[0-9A-Za-z][-.0-9A-Z_a-z]*`
 	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
 	WorkspaceID  *string                                  `json:"workspaceID,omitempty"`
 	WorkspaceRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"workspaceRef,omitempty"`

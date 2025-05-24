@@ -51,6 +51,8 @@ type WorkspaceStatus struct {
 	// +kubebuilder:validation:Optional
 	Status *WorkspaceStatus_SDK `json:"status,omitempty"`
 	// The unique ID for the new workspace.
+	//
+	// Regex Pattern: `[0-9A-Za-z][-.0-9A-Z_a-z]*`
 	// +kubebuilder:validation:Optional
 	WorkspaceID *string `json:"workspaceID,omitempty"`
 }
