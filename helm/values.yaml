@@ -4,7 +4,7 @@
 
 image:
   repository: public.ecr.aws/aws-controllers-k8s/prometheusservice-controller
-  tag: 1.2.26
+  tag: 1.2.27
   pullPolicy: IfNotPresent
   pullSecrets: []
 
