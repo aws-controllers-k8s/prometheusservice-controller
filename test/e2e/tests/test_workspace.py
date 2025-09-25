@@ -77,10 +77,10 @@ class TestWorkspace:
         assert 'statusCode' in workspace_resource['status']['status']
         assert workspace_resource['status']['status']['statusCode'] == 'CREATING'
         assert 'workspaceID' in workspace_resource['status']
-        condition.assert_not_synced(workspace_ref)
+        condition.assert_not_ready(workspace_ref)
 
         # Wait for the resource to get synced
-        assert k8s.wait_on_condition(workspace_ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(workspace_ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
 
         # After the resource is synced, assert that workspace is active
         latest = self.get_workspace(prometheusservice_client, workspace_resource['status']['workspaceID'])
@@ -100,7 +100,7 @@ class TestWorkspace:
         assert 'status' in workspace_resource['status']
         assert 'statusCode' in workspace_resource['status']['status']
         assert workspace_resource['status']['status']['statusCode'] == 'ACTIVE'
-        condition.assert_synced(workspace_ref)
+        condition.assert_ready(workspace_ref)
 
         # Next, we verify that the AMP server-side workspace values are the same as
         # defined in the CR. Afterwards, we modify the spec and verify that the AMP 
@@ -133,7 +133,7 @@ class TestWorkspace:
         time.sleep(MODIFY_WAIT_AFTER_SECONDS)
 
         # wait for the resource to get synced after the patch
-        assert k8s.wait_on_condition(workspace_ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(workspace_ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
         latest = self.get_workspace(prometheusservice_client, workspace_resource['status']['workspaceID'])
         assert latest is not None
         assert latest['workspace']['alias'] == new_alias
@@ -156,7 +156,7 @@ class TestWorkspace:
         time.sleep(MODIFY_WAIT_AFTER_SECONDS)
 
         # wait for the resource to get synced after the patch
-        assert k8s.wait_on_condition(workspace_ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(workspace_ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
 
         # After resource is synced again, assert that patches are reflected in the AWS resource
         latest = self.get_workspace(prometheusservice_client, workspace_resource['status']['workspaceID'])

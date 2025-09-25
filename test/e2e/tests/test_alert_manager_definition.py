@@ -61,7 +61,7 @@ def workspace_resource():
         assert workspace_resource is not None
         assert k8s.get_resource_exists(workspace_ref)
 
-        assert k8s.wait_on_condition(workspace_ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(workspace_ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
         assert 'workspaceID' in workspace_resource['status']
 
         yield (workspace_ref, workspace_resource)
@@ -131,9 +131,9 @@ class TestAlertManagerDefinition:
         assert am_resource['spec']['workspaceID'] == workspace_id
         assert 'configuration' in am_resource['spec']
         assert am_resource['spec']['configuration'] == configuration_str
-        condition.assert_not_synced(am_ref)
+        condition.assert_not_ready(am_ref)
 
-        assert k8s.wait_on_condition(am_ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(am_ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
 
         # After the resource is synced, assert that alert manager definition is active
         latest = self.get_alert_manager_definition(prometheusservice_client, workspace_id)
@@ -152,7 +152,7 @@ class TestAlertManagerDefinition:
         assert 'status' in am_resource
         assert 'statusCode' in am_resource['status']
         assert am_resource['status']['statusCode'] == 'ACTIVE'
-        condition.assert_synced(am_ref)
+        condition.assert_ready(am_ref)
 
         # Now, we update the resource with a new INVALID configuration. 
         # This kind of invalid configuration doesn't result in a validationexcpetion from the http request. 
@@ -184,7 +184,7 @@ class TestAlertManagerDefinition:
         assert 'statusCode' in am_resource['status']
         assert am_resource['status']['statusCode'] == 'UPDATING'
 
-        assert k8s.wait_on_condition(am_ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(am_ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
 
         # After the resource is synced, assert that alert manager is active
         latest = self.get_alert_manager_definition(prometheusservice_client, workspace_id)
@@ -201,7 +201,7 @@ class TestAlertManagerDefinition:
         assert 'status' in am_resource
         assert 'statusCode' in am_resource['status']
         assert am_resource['status']['statusCode'] == 'ACTIVE'
-        condition.assert_synced(am_ref)
+        condition.assert_ready(am_ref)
 
 
         # Delete the alert manager definition
@@ -278,8 +278,8 @@ class TestAlertManagerDefinition:
         assert 'configuration' in am_resource['spec']
         assert am_resource['spec']['configuration'] == configuration_str
 
-        condition.assert_not_synced(am_ref)
-        assert k8s.wait_on_condition(am_ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        condition.assert_not_ready(am_ref)
+        assert k8s.wait_on_condition(am_ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
 
         # After the resource is synced, assert that workspace is active
         latest = self.get_alert_manager_definition(prometheusservice_client, workspace_id)
@@ -298,7 +298,7 @@ class TestAlertManagerDefinition:
         assert 'status' in am_resource
         assert 'statusCode' in am_resource['status']
         assert am_resource['status']['statusCode'] == 'CREATION_FAILED'
-        condition.assert_synced(am_ref)
+        condition.assert_ready(am_ref)
 
     
         # Next, we want to update it to a valid configuration.
@@ -320,7 +320,7 @@ class TestAlertManagerDefinition:
         res= k8s.patch_custom_resource(am_ref, updates)
         time.sleep(MODIFY_WAIT_AFTER_SECONDS)
 
-        assert k8s.wait_on_condition(am_ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(am_ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
 
         # After the resource is synced, assert that workspace is active
         latest = self.get_alert_manager_definition(prometheusservice_client, workspace_id)
@@ -396,9 +396,9 @@ class TestAlertManagerDefinition:
         assert am_resource['spec'] is not None
         assert 'workspaceID' in am_resource['spec']
         assert am_resource['spec']['workspaceID'] == workspace_id
-        condition.assert_not_synced(am_ref)
+        condition.assert_not_ready(am_ref)
 
-        assert k8s.wait_on_condition(am_ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(am_ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
 
         # After the resource is synced, assert that workspace is active
         latest = self.get_alert_manager_definition(prometheusservice_client, workspace_id)
@@ -417,7 +417,7 @@ class TestAlertManagerDefinition:
         assert 'status' in am_resource
         assert 'statusCode' in am_resource['status']
         assert am_resource['status']['statusCode'] == 'ACTIVE'
-        condition.assert_synced(am_ref)
+        condition.assert_ready(am_ref)
 
 
         # To make the update, first load the invalid configuration
@@ -439,7 +439,7 @@ class TestAlertManagerDefinition:
         k8s.patch_custom_resource(am_ref, updates)
         time.sleep(MODIFY_WAIT_AFTER_SECONDS)
 
-        assert k8s.wait_on_condition(am_ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(am_ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
 
         latest = self.get_alert_manager_definition(prometheusservice_client, workspace_id)
         assert latest is not None
@@ -457,7 +457,7 @@ class TestAlertManagerDefinition:
 
         k8s.patch_custom_resource(am_ref, updates)
         time.sleep(MODIFY_WAIT_AFTER_SECONDS)
-        assert k8s.wait_on_condition(am_ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(am_ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
 
         # After the resource is synced, assert that information matches
         latest = self.get_alert_manager_definition(prometheusservice_client, workspace_id)
@@ -525,7 +525,7 @@ class TestAlertManagerDefinition:
         assert am_resource['spec'] is not None
         assert 'workspaceID' in am_resource['spec']
         assert am_resource['spec']['workspaceID'] == workspace_id
-        condition.assert_not_synced(am_ref_1)
+        condition.assert_not_ready(am_ref_1)
 
         # Create the second definition (Same workspace ID)
         replacements['ALERT_MANAGER_DEFINITION_NAME'] = resource_name + '-new'
@@ -546,11 +546,11 @@ class TestAlertManagerDefinition:
         
         time.sleep(CREATE_WAIT_AFTER_SECONDS)
 
-        condition.assert_synced(am_ref_1)
+        condition.assert_ready(am_ref_1)
 
         # The second resource should have a terminal error
         condition.assert_type_status(am_ref_2, condition.CONDITION_TYPE_TERMINAL, True)
-        condition.assert_not_synced(am_ref_2)
+        condition.assert_not_ready(am_ref_2)
 
         _, deleted = k8s.delete_custom_resource(am_ref_1)
         assert deleted
