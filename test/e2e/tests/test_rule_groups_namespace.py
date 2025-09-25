@@ -61,7 +61,7 @@ def workspace_resource():
         assert workspace_resource is not None
         assert k8s.get_resource_exists(workspace_ref)
 
-        assert k8s.wait_on_condition(workspace_ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(workspace_ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
         assert 'workspaceID' in workspace_resource['status']
 
         yield (workspace_ref, workspace_resource)
@@ -146,10 +146,10 @@ class TestRuleGroupsNamespace:
         assert 'workspaceID' in resource['spec']
         assert resource['spec']['workspaceID'] == workspace_id
         assert resource['spec']['configuration'] == configuration_str
-        condition.assert_not_synced(rule_ref)
+        condition.assert_not_ready(rule_ref)
 
 
-        assert k8s.wait_on_condition(rule_ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(rule_ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
 
         # Before we update the rule group CR below, we need to check that the
         # rule groups status field in the CR has been updated to active,
@@ -164,7 +164,7 @@ class TestRuleGroupsNamespace:
         assert 'status' in resource['status']
         assert 'statusCode' in resource['status']['status']
         assert resource['status']['status']['statusCode'] == 'ACTIVE'
-        condition.assert_synced(rule_ref)
+        condition.assert_ready(rule_ref)
 
 
         # Next, we verify that the AMP server-side rule groups values are the same as
@@ -221,7 +221,7 @@ class TestRuleGroupsNamespace:
         assert resource['status']['status']['statusCode'] == 'UPDATING'
 
         # Wait until the update finishes
-        assert k8s.wait_on_condition(rule_ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(rule_ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
 
         # Verify that the server side resource matches after the updates. 
         latest = self.get_rule_groups_namespace(prometheusservice_client, workspace_id, resource_name)
@@ -247,7 +247,7 @@ class TestRuleGroupsNamespace:
         }
         k8s.patch_custom_resource(rule_ref, updates)
         time.sleep(UPDATE_WAIT_AFTER_SECONDS)
-        condition.assert_synced(rule_ref)
+        condition.assert_ready(rule_ref)
 
         # After resource is synced again, assert that patches are reflected in the AWS resource
         latest = self.get_rule_groups_namespace(prometheusservice_client, workspace_id, resource_name)
@@ -318,7 +318,7 @@ class TestRuleGroupsNamespace:
         assert resource['spec'] is not None
         assert 'workspaceID' in resource['spec']
         assert resource['spec']['workspaceID'] == workspace_id
-        condition.assert_not_synced(rule_ref_1)
+        condition.assert_not_ready(rule_ref_1)
 
         # The second resource
         new_resource_name = resource_name + "-new"
@@ -341,16 +341,16 @@ class TestRuleGroupsNamespace:
         # The second resource should be in terminal status and not synced because 
         # This resource already exists but is not managed by this CR.
         condition.assert_type_status(rule_ref_2, condition.CONDITION_TYPE_TERMINAL, True)
-        condition.assert_not_synced(rule_ref_2)
+        condition.assert_not_ready(rule_ref_2)
 
         time.sleep(CREATE_WAIT_AFTER_SECONDS)
 
         # The original resource should still be synced
-        condition.assert_synced(rule_ref_1)
+        condition.assert_ready(rule_ref_1)
         
         # The second resource should remain in terminal error and not synced. 
         condition.assert_type_status(rule_ref_2, condition.CONDITION_TYPE_TERMINAL, True)
-        condition.assert_not_synced(rule_ref_2)
+        condition.assert_not_ready(rule_ref_2)
 
         # Clean up the resource
         _, deleted = k8s.delete_custom_resource(rule_ref_1)

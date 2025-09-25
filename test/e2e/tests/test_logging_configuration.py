@@ -58,7 +58,7 @@ def workspace_resource():
         assert workspace_resource is not None
         assert k8s.get_resource_exists(workspace_ref)
 
-        assert k8s.wait_on_condition(workspace_ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(workspace_ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
         assert 'workspaceID' in workspace_resource['status']
 
         yield (workspace_ref, workspace_resource)
@@ -117,10 +117,10 @@ class TestLoggingConfiguration:
         assert lc_resource['status']['statusCode'] == 'CREATING'
         assert lc_resource['spec']['workspaceID'] == workspace_id
         assert lc_resource['spec']['logGroupARN'] == log_group_arn
-        condition.assert_not_synced(lc_ref)
+        condition.assert_not_ready(lc_ref)
 
         # Wait for the resource to get synced
-        assert k8s.wait_on_condition(lc_ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(lc_ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
 
         # After the resource is synced, assert that workspace is active
         latest = self.get_logging_configuration(prometheusservice_client, lc_resource['spec']['workspaceID'])
@@ -141,7 +141,7 @@ class TestLoggingConfiguration:
         assert 'status' in lc_resource
         assert 'statusCode' in lc_resource['status']
         assert lc_resource['status']['statusCode'] == 'ACTIVE'
-        condition.assert_synced(lc_ref)
+        condition.assert_ready(lc_ref)
 
         # Update the log group ARN
         new_log_group_arn = get_bootstrap_resources().LoggingConfigurationLogGroup2.arn
@@ -152,7 +152,7 @@ class TestLoggingConfiguration:
         res= k8s.patch_custom_resource(lc_ref, updates)
         time.sleep(MODIFY_WAIT_AFTER_SECONDS)
         # wait for the resource to get synced after the patch
-        assert k8s.wait_on_condition(lc_ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(lc_ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
         latest = self.get_logging_configuration(prometheusservice_client, lc_resource['spec']['workspaceID'])
         assert latest is not None
         assert latest['loggingConfiguration']['logGroupArn'] == new_log_group_arn
