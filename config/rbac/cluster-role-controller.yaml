@@ -23,6 +23,14 @@ rules:
   - list
   - watch
 - apiGroups:
+  - cloudwatchlogs.services.k8s.aws
+  resources:
+  - loggroups
+  - loggroups/status
+  verbs:
+  - get
+  - list
+- apiGroups:
   - prometheusservice.services.k8s.aws
   resources:
   - alertmanagerdefinitions

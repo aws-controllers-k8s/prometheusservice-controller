@@ -337,6 +337,11 @@ func (in *LoggingConfigurationSpec) DeepCopyInto(out *LoggingConfigurationSpec) 
 		*out = new(string)
 		**out = **in
 	}
+	if in.LogGroupRef != nil {
+		in, out := &in.LogGroupRef, &out.LogGroupRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.WorkspaceID != nil {
 		in, out := &in.WorkspaceID, &out.WorkspaceID
 		*out = new(string)

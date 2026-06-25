@@ -27,8 +27,8 @@ type LoggingConfigurationSpec struct {
 	// published. This log group must exist prior to calling this operation.
 	//
 	// Regex Pattern: `^arn:aws[a-z0-9-]*:logs:[a-z0-9-]+:\d{12}:log-group:[A-Za-z0-9\.\-\_\#/]{1,512}\:\*$`
-	// +kubebuilder:validation:Required
-	LogGroupARN *string `json:"logGroupARN"`
+	LogGroupARN *string                                  `json:"logGroupARN,omitempty"`
+	LogGroupRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"logGroupRef,omitempty"`
 	// The ID of the workspace to create the logging configuration for.
 	//
 	// Regex Pattern: `[0-9A-Za-z][-.0-9A-Z_a-z]*`
