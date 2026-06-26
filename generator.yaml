@@ -114,6 +114,10 @@ resources:
         is_required: true
         print:
           name: LOG-GROUP-ARN
+        references:
+          resource: LogGroup
+          service_name: cloudwatchlogs
+          path: Status.ACKResourceMetadata.ARN
     hooks:
       sdk_create_post_set_output:
         template_path: hooks/logging_configuration/sdk_create_post_set_output.go.tpl

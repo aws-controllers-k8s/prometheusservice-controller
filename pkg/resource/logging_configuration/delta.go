@@ -49,6 +49,9 @@ func newResourceDelta(
 			delta.Add("Spec.LogGroupARN", a.ko.Spec.LogGroupARN, b.ko.Spec.LogGroupARN)
 		}
 	}
+	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.LogGroupRef, b.ko.Spec.LogGroupRef) {
+		delta.Add("Spec.LogGroupRef", a.ko.Spec.LogGroupRef, b.ko.Spec.LogGroupRef)
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.WorkspaceID, b.ko.Spec.WorkspaceID) {
 		delta.Add("Spec.WorkspaceID", a.ko.Spec.WorkspaceID, b.ko.Spec.WorkspaceID)
 	} else if a.ko.Spec.WorkspaceID != nil && b.ko.Spec.WorkspaceID != nil {
