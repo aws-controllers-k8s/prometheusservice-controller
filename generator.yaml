@@ -1,6 +1,5 @@
 ignore:
-  resource_names:
-   - Scraper 
+  resource_names: []
   field_paths:
     - CreateWorkspaceInput.ClientToken
     - CreateWorkspaceInput.KmsKeyArn
@@ -10,6 +9,14 @@ ignore:
     - CreateAlertManagerDefinitionInput.ClientToken
     - CreateAlertManagerDefinitionInput.Data
     - CreateLoggingConfigurationInput.ClientToken
+    - CreateScraperInput.ClientToken
+    # The scrape configuration is a base64 blob wrapped in a single-member union.
+    # As with the rule groups and alert manager `data` fields above, we hide it and
+    # expose a user-facing `configuration` string field instead, converting in hooks.
+    # It must be ignored on every shape it appears in, or the read path still maps it.
+    - CreateScraperInput.ScrapeConfiguration
+    - UpdateScraperInput.ScrapeConfiguration
+    - ScraperDescription.ScrapeConfiguration
   operations: null
 resources:
   Workspace:
@@ -121,6 +128,47 @@ resources:
         template_path: hooks/logging_configuration/sdk_read_one_post_set_output.go.tpl
     tags:
       ignore: true
+  Scraper:
+    fields:
+      Alias:
+        print:
+          name: ALIAS
+      # Same rationale as the rule groups and alert manager `configuration` fields:
+      # the API takes a base64 blob, but users should supply plain YAML.
+      configuration:
+        type: "string"
+        is_required: True
+      Destination.AmpConfiguration.WorkspaceArn:
+        references:
+          resource: Workspace
+          path: Status.ACKResourceMetadata.ARN
+      Tags:
+        custom_sync: {}
+      # Only DescribeScraper returns these. RoleARN is the scraper's service-linked
+      # role, which operators need when granting it access to the EKS cluster, and
+      # StatusReason explains a CREATION_FAILED/UPDATE_FAILED scraper.
+      RoleARN:
+        is_read_only: true
+        from:
+          operation: DescribeScraper
+          path: Scraper.RoleArn
+      StatusReason:
+        is_read_only: true
+        from:
+          operation: DescribeScraper
+          path: Scraper.StatusReason
+    hooks:
+      sdk_create_post_build_request:
+        template_path: hooks/scraper/sdk_create_post_build_request.go.tpl
+      sdk_read_one_pre_set_output:
+        template_path: hooks/scraper/sdk_read_one_pre_set_output.go.tpl
+      sdk_update_pre_build_request:
+        template_path: hooks/scraper/sdk_update_pre_build_request.go.tpl
+      sdk_update_post_build_request:
+        template_path: hooks/scraper/sdk_update_post_build_request.go.tpl
+    exceptions:
+      terminal_codes:
+        - ValidationException
 sdk_names:
   model_name: amp
   package_name: amp

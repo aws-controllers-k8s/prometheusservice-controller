@@ -12,6 +12,7 @@ rules:
   - alertmanagerdefinitions
   - loggingconfigurations
   - rulegroupsnamespaces
+  - scrapers
   - workspaces
   verbs:
   - get

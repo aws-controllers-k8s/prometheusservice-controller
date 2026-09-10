@@ -52,6 +52,26 @@ type AlertManagerDefinitionStatus_SDK struct {
 type AmpConfiguration struct {
 	// An ARN identifying a Workspace.
 	WorkspaceARN *string `json:"workspaceARN,omitempty"`
+	// Reference field for WorkspaceARN
+	WorkspaceRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"workspaceRef,omitempty"`
+}
+
+// Where to send the metrics from a scraper.
+type Destination struct {
+	// The AmpConfiguration structure defines the Amazon Managed Service for Prometheus
+	// instance a scraper should send metrics to.
+	AmpConfiguration *AmpConfiguration `json:"ampConfiguration,omitempty"`
+}
+
+// The EksConfiguration structure describes the connection to the Amazon EKS
+// cluster from which a scraper collects metrics.
+type EKSConfiguration struct {
+	// The ARN of an EKS cluster.
+	ClusterARN *string `json:"clusterARN,omitempty"`
+	// A list of security group IDs specified for VPC configuration.
+	SecurityGroupIDs []*string `json:"securityGroupIDs,omitempty"`
+	// A list of subnet IDs specified for VPC configuration.
+	SubnetIDs []*string `json:"subnetIDs,omitempty"`
 }
 
 // Contains information about the logging configuration for the workspace.
@@ -113,19 +133,64 @@ type RuleGroupsNamespaceSummary struct {
 // The ScraperDescription structure contains the full details about one scraper
 // in your account.
 type ScraperDescription struct {
-	CreatedAt      *metav1.Time `json:"createdAt,omitempty"`
+	// An optional user-assigned scraper alias.
+	Alias *string `json:"alias,omitempty"`
+	// An ARN identifying a scrape configuration.
+	ARN       *string      `json:"arn,omitempty"`
+	CreatedAt *metav1.Time `json:"createdAt,omitempty"`
+	// Where to send the metrics from a scraper.
+	Destination    *Destination `json:"destination,omitempty"`
 	LastModifiedAt *metav1.Time `json:"lastModifiedAt,omitempty"`
+	// An ARN identifying an IAM role used by the scraper.
+	RoleARN *string `json:"roleARN,omitempty"`
+	// A scraper ID.
+	ScraperID *string `json:"scraperID,omitempty"`
+	// The source of collected metrics for a scraper.
+	Source *Source `json:"source,omitempty"`
+	// The ScraperStatus structure contains status information about the scraper.
+	Status *ScraperStatus_SDK `json:"status,omitempty"`
+	// The reason for the failure, if any.
+	StatusReason *string `json:"statusReason,omitempty"`
 	// A tag associated with a resource.
 	Tags map[string]*string `json:"tags,omitempty"`
+}
+
+// The ScraperStatus structure contains status information about the scraper.
+type ScraperStatus_SDK struct {
+	// State of a scraper.
+	StatusCode *string `json:"statusCode,omitempty"`
 }
 
 // The ScraperSummary structure contains a summary of the details about one
 // scraper in your account.
 type ScraperSummary struct {
-	CreatedAt      *metav1.Time `json:"createdAt,omitempty"`
+	// An optional user-assigned scraper alias.
+	Alias *string `json:"alias,omitempty"`
+	// An ARN identifying a scrape configuration.
+	ARN       *string      `json:"arn,omitempty"`
+	CreatedAt *metav1.Time `json:"createdAt,omitempty"`
+	// Where to send the metrics from a scraper.
+	Destination    *Destination `json:"destination,omitempty"`
 	LastModifiedAt *metav1.Time `json:"lastModifiedAt,omitempty"`
+	// An ARN identifying an IAM role used by the scraper.
+	RoleARN *string `json:"roleARN,omitempty"`
+	// A scraper ID.
+	ScraperID *string `json:"scraperID,omitempty"`
+	// The source of collected metrics for a scraper.
+	Source *Source `json:"source,omitempty"`
+	// The ScraperStatus structure contains status information about the scraper.
+	Status *ScraperStatus_SDK `json:"status,omitempty"`
+	// The reason for the failure, if any.
+	StatusReason *string `json:"statusReason,omitempty"`
 	// A tag associated with a resource.
 	Tags map[string]*string `json:"tags,omitempty"`
+}
+
+// The source of collected metrics for a scraper.
+type Source struct {
+	// The EksConfiguration structure describes the connection to the Amazon EKS
+	// cluster from which a scraper collects metrics.
+	EKSConfiguration *EKSConfiguration `json:"eksConfiguration,omitempty"`
 }
 
 // Information about a field passed into a request that resulted in an exception.
