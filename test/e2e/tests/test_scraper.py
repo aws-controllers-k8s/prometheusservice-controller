@@ -119,7 +119,7 @@ class TestScraper:
         resource = k8s.get_resource(ref)
         scraper_id = resource["status"]["scraperID"]
         assert scraper_id is not None
-        assert resource["status"]["status"]["statusCode"] == "ACTIVE"
+        assert resource["status"]["statusCode"] == "ACTIVE"
         # Only DescribeScraper returns these, so they prove the read-only status
         # fields are wired up.
         assert resource["status"]["roleARN"] is not None

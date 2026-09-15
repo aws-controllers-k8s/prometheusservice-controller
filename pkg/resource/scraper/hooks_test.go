@@ -23,13 +23,11 @@ import (
 )
 
 // scraperWithStatus builds a scraper resource whose reported state is the
-// supplied status code. A nil code omits the whole status struct, which is what
-// the API returns before it has assigned one.
+// supplied status code. A nil code leaves the field unset, which is what the CR
+// looks like before AWS has reported one.
 func scraperWithStatus(statusCode *string) *resource {
 	ko := &svcapitypes.Scraper{}
-	if statusCode != nil {
-		ko.Status.Status = &svcapitypes.ScraperStatus_SDK{StatusCode: statusCode}
-	}
+	ko.Status.StatusCode = statusCode
 	return &resource{ko: ko}
 }
 
@@ -39,12 +37,7 @@ func Test_scraperStatusCode(t *testing.T) {
 		r    *resource
 		want string
 	}{
-		{"nil status struct", scraperWithStatus(nil), ""},
-		{"nil status code", &resource{ko: &svcapitypes.Scraper{
-			Status: svcapitypes.ScraperStatus{
-				Status: &svcapitypes.ScraperStatus_SDK{},
-			},
-		}}, ""},
+		{"unset", scraperWithStatus(nil), ""},
 		{"active", scraperWithStatus(aws.String("ACTIVE")), "ACTIVE"},
 	}
 	for _, tt := range tests {
@@ -56,18 +49,15 @@ func Test_scraperStatusCode(t *testing.T) {
 	}
 }
 
-func Test_scraperInTransition(t *testing.T) {
+func Test_scraperDeleting(t *testing.T) {
 	tests := []struct {
 		statusCode *string
 		want       bool
 	}{
 		{nil, false},
-		{aws.String(string(svcapitypes.ScraperStatusCode_CREATING)), true},
-		{aws.String(string(svcapitypes.ScraperStatusCode_UPDATING)), true},
 		{aws.String(string(svcapitypes.ScraperStatusCode_DELETING)), true},
 		{aws.String(string(svcapitypes.ScraperStatusCode_ACTIVE)), false},
-		{aws.String(string(svcapitypes.ScraperStatusCode_CREATION_FAILED)), false},
-		{aws.String(string(svcapitypes.ScraperStatusCode_UPDATE_FAILED)), false},
+		{aws.String(string(svcapitypes.ScraperStatusCode_CREATING)), false},
 		{aws.String(string(svcapitypes.ScraperStatusCode_DELETION_FAILED)), false},
 	}
 	for _, tt := range tests {
@@ -76,8 +66,8 @@ func Test_scraperInTransition(t *testing.T) {
 			name = *tt.statusCode
 		}
 		t.Run(name, func(t *testing.T) {
-			if got := scraperInTransition(scraperWithStatus(tt.statusCode)); got != tt.want {
-				t.Errorf("scraperInTransition(%s) = %v, want %v", name, got, tt.want)
+			if got := scraperDeleting(scraperWithStatus(tt.statusCode)); got != tt.want {
+				t.Errorf("scraperDeleting(%s) = %v, want %v", name, got, tt.want)
 			}
 		})
 	}

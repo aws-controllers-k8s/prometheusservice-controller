@@ -15,7 +15,10 @@ package scraper
 
 import (
 	"context"
+	"errors"
+	"time"
 
+	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	svcsdk "github.com/aws/aws-sdk-go-v2/service/amp"
@@ -23,24 +26,29 @@ import (
 	svcapitypes "github.com/aws-controllers-k8s/prometheusservice-controller/apis/v1alpha1"
 )
 
+var (
+	ErrScraperDeleting = errors.New("Scraper in 'DELETING' state, cannot be modified or deleted")
+)
+
+var (
+	requeueWaitWhileDeleting = ackrequeue.NeededAfter(
+		ErrScraperDeleting,
+		10*time.Second,
+	)
+)
+
 // scraperStatusCode returns the scraper's current state, or the empty string
 // when AWS has not reported one yet.
 func scraperStatusCode(r *resource) string {
-	if r.ko.Status.Status == nil || r.ko.Status.Status.StatusCode == nil {
+	if r.ko.Status.StatusCode == nil {
 		return ""
 	}
-	return *r.ko.Status.Status.StatusCode
+	return *r.ko.Status.StatusCode
 }
 
-// scraperInTransition returns true while AWS is still converging the scraper.
-func scraperInTransition(r *resource) bool {
-	switch scraperStatusCode(r) {
-	case string(svcapitypes.ScraperStatusCode_CREATING),
-		string(svcapitypes.ScraperStatusCode_UPDATING),
-		string(svcapitypes.ScraperStatusCode_DELETING):
-		return true
-	}
-	return false
+// scraperDeleting returns true if the scraper is already being torn down.
+func scraperDeleting(r *resource) bool {
+	return scraperStatusCode(r) == string(svcapitypes.ScraperStatusCode_DELETING)
 }
 
 // scraperHasFailed returns true when the scraper reached a state AWS will not

@@ -844,11 +844,6 @@ func (in *ScraperDescription) DeepCopyInto(out *ScraperDescription) {
 		*out = new(Source)
 		(*in).DeepCopyInto(*out)
 	}
-	if in.Status != nil {
-		in, out := &in.Status, &out.Status
-		*out = new(ScraperStatus_SDK)
-		(*in).DeepCopyInto(*out)
-	}
 	if in.StatusReason != nil {
 		in, out := &in.StatusReason, &out.StatusReason
 		*out = new(string)
@@ -994,10 +989,10 @@ func (in *ScraperStatus) DeepCopyInto(out *ScraperStatus) {
 		*out = new(string)
 		**out = **in
 	}
-	if in.Status != nil {
-		in, out := &in.Status, &out.Status
-		*out = new(ScraperStatus_SDK)
-		(*in).DeepCopyInto(*out)
+	if in.StatusCode != nil {
+		in, out := &in.StatusCode, &out.StatusCode
+		*out = new(string)
+		**out = **in
 	}
 	if in.StatusReason != nil {
 		in, out := &in.StatusReason, &out.StatusReason

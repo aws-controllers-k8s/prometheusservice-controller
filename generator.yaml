@@ -17,6 +17,12 @@ ignore:
     - CreateScraperInput.ScrapeConfiguration
     - UpdateScraperInput.ScrapeConfiguration
     - ScraperDescription.ScrapeConfiguration
+    # The API nests the state in a Status object. Flatten it onto Status.StatusCode
+    # and Status.StatusReason, as the other resources here already do, so synced.when
+    # can reference it: it cannot walk a nested path whose field name differs from
+    # its shape name, which is the case for Status/ScraperStatus_SDK.
+    - CreateScraperOutput.Status
+    - ScraperDescription.Status
   operations: null
 resources:
   Workspace:
@@ -144,28 +150,43 @@ resources:
           path: Status.ACKResourceMetadata.ARN
       Tags:
         custom_sync: {}
-      # Only DescribeScraper returns these. RoleARN is the scraper's service-linked
-      # role, which operators need when granting it access to the EKS cluster, and
-      # StatusReason explains a CREATION_FAILED/UPDATE_FAILED scraper.
-      RoleARN:
+      # Only DescribeScraper returns these. StatusCode and StatusReason are flattened
+      # out of the nested Status object (see ignore.field_paths) and populated in the
+      # read hook. RoleARN is the scraper's service-linked role, which operators need
+      # when granting it access to the EKS cluster.
+      RoleArn:
         is_read_only: true
         from:
           operation: DescribeScraper
           path: Scraper.RoleArn
+      StatusCode:
+        type: "string"
+        is_read_only: true
       StatusReason:
         is_read_only: true
         from:
           operation: DescribeScraper
           path: Scraper.StatusReason
+    synced:
+      when:
+        - path: Status.StatusCode
+          in:
+            - ACTIVE
     hooks:
       sdk_create_post_build_request:
         template_path: hooks/scraper/sdk_create_post_build_request.go.tpl
       sdk_read_one_pre_set_output:
         template_path: hooks/scraper/sdk_read_one_pre_set_output.go.tpl
+      sdk_read_one_post_set_output:
+        template_path: hooks/scraper/sdk_read_one_post_set_output.go.tpl
       sdk_update_pre_build_request:
         template_path: hooks/scraper/sdk_update_pre_build_request.go.tpl
       sdk_update_post_build_request:
         template_path: hooks/scraper/sdk_update_post_build_request.go.tpl
+      sdk_delete_pre_build_request:
+        template_path: hooks/scraper/sdk_delete_pre_build_request.go.tpl
+      sdk_delete_post_request:
+        template_path: hooks/scraper/sdk_delete_post_request.go.tpl
     exceptions:
       terminal_codes:
         - ValidationException

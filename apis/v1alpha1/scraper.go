@@ -64,9 +64,8 @@ type ScraperStatus struct {
 	// Regex Pattern: `^[0-9A-Za-z][-.0-9A-Z_a-z]*$`
 	// +kubebuilder:validation:Optional
 	ScraperID *string `json:"scraperID,omitempty"`
-	// A structure that displays the current status of the scraper.
 	// +kubebuilder:validation:Optional
-	Status *ScraperStatus_SDK `json:"status,omitempty"`
+	StatusCode *string `json:"statusCode,omitempty"`
 	// If there is a failure, the reason for the failure.
 	// +kubebuilder:validation:Optional
 	StatusReason *string `json:"statusReason,omitempty"`

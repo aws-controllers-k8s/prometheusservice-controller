@@ -106,30 +106,6 @@ func (rm *resourceManager) sdkFind(
 		ko.Spec.Configuration = nil
 	}
 
-	// Scraper creation, update and deletion are asynchronous. A failed state is
-	// terminal: AMP will not retry it, so requeueing forever would just hide the
-	// reason from the user. This mirrors how the other resources in this
-	// controller report status rather than using a generated synced condition,
-	// which cannot express the failed states.
-	if scraperHasFailed(&resource{ko}) {
-		msg := "Scraper is in " + *ko.Status.Status.StatusCode + " status"
-		if ko.Status.StatusReason != nil {
-			msg += ": " + *ko.Status.StatusReason
-		}
-		rm.setStatusDefaults(ko)
-		ackcondition.SetTerminal(&resource{ko}, corev1.ConditionTrue, &msg, nil)
-		ackcondition.SetSynced(&resource{ko}, corev1.ConditionTrue, nil, nil)
-		return &resource{ko}, nil
-	}
-
-	if scraperInTransition(&resource{ko}) {
-		// Setting the synced condition to false triggers a requeue, so there is
-		// no need to return a requeue error here.
-		rm.setStatusDefaults(ko)
-		ackcondition.SetSynced(&resource{ko}, corev1.ConditionFalse, nil, nil)
-		return &resource{ko}, nil
-	}
-
 	if resp.Scraper.Alias != nil {
 		ko.Spec.Alias = resp.Scraper.Alias
 	} else {
@@ -159,6 +135,11 @@ func (rm *resourceManager) sdkFind(
 	} else {
 		ko.Spec.Destination = nil
 	}
+	if resp.Scraper.RoleArn != nil {
+		ko.Status.RoleARN = resp.Scraper.RoleArn
+	} else {
+		ko.Status.RoleARN = nil
+	}
 	if resp.Scraper.ScraperId != nil {
 		ko.Status.ScraperID = resp.Scraper.ScraperId
 	} else {
@@ -187,15 +168,6 @@ func (rm *resourceManager) sdkFind(
 	} else {
 		ko.Spec.Source = nil
 	}
-	if resp.Scraper.Status != nil {
-		f8 := &svcapitypes.ScraperStatus_SDK{}
-		if resp.Scraper.Status.StatusCode != "" {
-			f8.StatusCode = aws.String(string(resp.Scraper.Status.StatusCode))
-		}
-		ko.Status.Status = f8
-	} else {
-		ko.Status.Status = nil
-	}
 	if resp.Scraper.StatusReason != nil {
 		ko.Status.StatusReason = resp.Scraper.StatusReason
 	} else {
@@ -208,6 +180,28 @@ func (rm *resourceManager) sdkFind(
 	}
 
 	rm.setStatusDefaults(ko)
+
+	// The API nests the state inside a Status object, which is flattened out of the
+	// model (see ignore.field_paths), so copy it onto Status.StatusCode here. This
+	// runs post-set-output, after the generated code has applied the response, so it
+	// reflects what AWS just returned rather than the previous reconcile's value.
+	if resp.Scraper.Status != nil && resp.Scraper.Status.StatusCode != "" {
+		ko.Status.StatusCode = aws.String(string(resp.Scraper.Status.StatusCode))
+	} else {
+		ko.Status.StatusCode = nil
+	}
+
+	// A failed state is terminal: AWS will not retry it, and synced.when only ever
+	// reports ACTIVE as synced, so without this the resource would requeue forever
+	// with the reason buried in its status.
+	if scraperHasFailed(&resource{ko}) {
+		msg := "Scraper is in " + *ko.Status.StatusCode + " status"
+		if ko.Status.StatusReason != nil {
+			msg += ": " + *ko.Status.StatusReason
+		}
+		ackcondition.SetTerminal(&resource{ko}, corev1.ConditionTrue, &msg, nil)
+	}
+
 	return &resource{ko}, nil
 }
 
@@ -283,15 +277,6 @@ func (rm *resourceManager) sdkCreate(
 		ko.Status.ScraperID = resp.ScraperId
 	} else {
 		ko.Status.ScraperID = nil
-	}
-	if resp.Status != nil {
-		f2 := &svcapitypes.ScraperStatus_SDK{}
-		if resp.Status.StatusCode != "" {
-			f2.StatusCode = aws.String(string(resp.Status.StatusCode))
-		}
-		ko.Status.Status = f2
-	} else {
-		ko.Status.Status = nil
 	}
 	if resp.Tags != nil {
 		ko.Spec.Tags = aws.StringMap(resp.Tags)
@@ -440,15 +425,6 @@ func (rm *resourceManager) sdkUpdate(
 	} else {
 		ko.Status.ScraperID = nil
 	}
-	if resp.Status != nil {
-		f2 := &svcapitypes.ScraperStatus_SDK{}
-		if resp.Status.StatusCode != "" {
-			f2.StatusCode = aws.String(string(resp.Status.StatusCode))
-		}
-		ko.Status.Status = f2
-	} else {
-		ko.Status.Status = nil
-	}
 	if resp.Tags != nil {
 		ko.Spec.Tags = aws.StringMap(resp.Tags)
 	} else {
@@ -506,6 +482,13 @@ func (rm *resourceManager) sdkDelete(
 	defer func() {
 		exit(err)
 	}()
+
+	// A scraper already in DELETING would reject another DeleteScraper, so requeue
+	// without calling it again.
+	if scraperDeleting(r) {
+		return nil, requeueWaitWhileDeleting
+	}
+
 	input, err := rm.newDeleteRequestPayload(r)
 	if err != nil {
 		return nil, err
@@ -514,6 +497,14 @@ func (rm *resourceManager) sdkDelete(
 	_ = resp
 	resp, err = rm.sdkapi.DeleteScraper(ctx, input)
 	rm.metrics.RecordAPICall("DELETE", "DeleteScraper", err)
+
+	// DeleteScraper only starts the deletion. Requeue so the finalizer is dropped
+	// only once DescribeScraper stops finding the scraper, rather than leaving the
+	// CR gone while AWS is still tearing the scraper down.
+	if err == nil {
+		return nil, requeueWaitWhileDeleting
+	}
+
 	return nil, err
 }
 

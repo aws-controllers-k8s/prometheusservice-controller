@@ -147,8 +147,6 @@ type ScraperDescription struct {
 	ScraperID *string `json:"scraperID,omitempty"`
 	// The source of collected metrics for a scraper.
 	Source *Source `json:"source,omitempty"`
-	// The ScraperStatus structure contains status information about the scraper.
-	Status *ScraperStatus_SDK `json:"status,omitempty"`
 	// The reason for the failure, if any.
 	StatusReason *string `json:"statusReason,omitempty"`
 	// A tag associated with a resource.
