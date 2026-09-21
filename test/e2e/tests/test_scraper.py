@@ -189,8 +189,13 @@ class TestScraper:
         ]
 
         # Update the tags, which are reconciled through TagResource/UntagResource
-        # rather than UpdateScraper.
-        k8s.patch_custom_resource(ref, {"spec": {"tags": {"k1": "v1updated"}}})
+        # rather than UpdateScraper. A merge patch merges maps rather than replacing
+        # them, so k2 has to be nulled explicitly for the untag path to be exercised
+        # at all. AWS also carries ACK's own services.k8s.aws/* tags, so only the
+        # keys under test are asserted.
+        k8s.patch_custom_resource(
+            ref, {"spec": {"tags": {"k1": "v1updated", "k2": None}}}
+        )
         time.sleep(UPDATE_WAIT_AFTER_SECONDS)
         assert_synced(ref)
         latest = self.describe_scraper(prometheusservice_client, scraper_id)
