@@ -27,10 +27,28 @@ from e2e.bootstrap_resources import get_bootstrap_resources
 
 RESOURCE_PLURAL = "scrapers"
 
-MAX_WAIT_FOR_SYNCED_MINUTES = 20
-CREATE_WAIT_AFTER_SECONDS = 30
+# Scraper creation was measured at ~15 minutes against real AWS, so leave real
+# headroom here rather than sitting just under the observed time.
+MAX_WAIT_FOR_SYNCED_MINUTES = 30
 UPDATE_WAIT_AFTER_SECONDS = 30
-DELETE_WAIT_AFTER_SECONDS = 30
+# Deletion is asynchronous and the controller requeues until DescribeScraper stops
+# finding the scraper, so the CR outlives the delete call by minutes.
+DELETE_WAIT_PERIODS = 30
+DELETE_PERIOD_LENGTH = 30
+
+
+def assert_synced(ref):
+    """Wait for ACK.ResourceSynced, reporting the CR's conditions if it never arrives.
+
+    The reconciler's logs are not captured in CI, so on a bare assert a terminal
+    condition -- an AWS validation error, say -- surfaces only as an opaque timeout.
+    """
+    if k8s.wait_on_condition(
+        ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES
+    ):
+        return
+    status = k8s.get_resource(ref).get("status", {})
+    pytest.fail(f"ACK.ResourceSynced never became True. status={status}")
 
 
 @pytest.fixture(scope="module")
@@ -53,13 +71,13 @@ def workspace_resource():
     k8s.create_custom_resource(ref, resource_data)
     resource = k8s.wait_resource_consumed_by_controller(ref)
     assert resource is not None
-    assert k8s.wait_on_condition(
-        ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES
-    )
+    assert_synced(ref)
 
     yield (ref, resource_name)
 
-    _, deleted = k8s.delete_custom_resource(ref)
+    _, deleted = k8s.delete_custom_resource(
+        ref, wait_periods=DELETE_WAIT_PERIODS, period_length=DELETE_PERIOD_LENGTH
+    )
     assert deleted
 
 
@@ -93,7 +111,9 @@ def scraper(workspace_resource):
     yield (ref, resource_name)
 
     if k8s.get_resource_exists(ref):
-        _, deleted = k8s.delete_custom_resource(ref)
+        _, deleted = k8s.delete_custom_resource(
+            ref, wait_periods=DELETE_WAIT_PERIODS, period_length=DELETE_PERIOD_LENGTH
+        )
         assert deleted
 
 
@@ -112,9 +132,7 @@ class TestScraper:
     def test_crud_scraper(self, prometheusservice_client, scraper):
         ref, resource_name = scraper
 
-        assert k8s.wait_on_condition(
-            ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES
-        )
+        assert_synced(ref)
 
         resource = k8s.get_resource(ref)
         scraper_id = resource["status"]["scraperID"]
@@ -139,19 +157,30 @@ class TestScraper:
             "configurationBlob"
         ]
 
-        # Update the alias and the configuration.
+        # Update the alias and the configuration. The scrape config must keep at
+        # least one job: AMP rejects an empty scrape_configs with a
+        # ValidationException, which the controller maps to a terminal condition.
         new_alias = resource_name + "-updated"
         updates = {
             "spec": {
                 "alias": new_alias,
-                "configuration": "global:\n  scrape_interval: 60s\nscrape_configs: []\n",
+                "configuration": (
+                    "global:\n"
+                    "  scrape_interval: 60s\n"
+                    "scrape_configs:\n"
+                    "  - job_name: kubernetes-apiservers\n"
+                    "    kubernetes_sd_configs:\n"
+                    "      - role: endpoints\n"
+                    "    scheme: https\n"
+                    "    tls_config:\n"
+                    "      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt\n"
+                    "      insecure_skip_verify: true\n"
+                ),
             }
         }
         k8s.patch_custom_resource(ref, updates)
         time.sleep(UPDATE_WAIT_AFTER_SECONDS)
-        assert k8s.wait_on_condition(
-            ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES
-        )
+        assert_synced(ref)
 
         latest = self.describe_scraper(prometheusservice_client, scraper_id)
         assert latest["alias"] == new_alias
@@ -163,9 +192,7 @@ class TestScraper:
         # rather than UpdateScraper.
         k8s.patch_custom_resource(ref, {"spec": {"tags": {"k1": "v1updated"}}})
         time.sleep(UPDATE_WAIT_AFTER_SECONDS)
-        assert k8s.wait_on_condition(
-            ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES
-        )
+        assert_synced(ref)
         latest = self.describe_scraper(prometheusservice_client, scraper_id)
         assert latest["tags"]["k1"] == "v1updated"
         assert "k2" not in latest["tags"]
@@ -196,7 +223,8 @@ class TestScraper:
             get_bootstrap_resources().ScraperEKSCluster.security_group_ids
         )
 
-        _, deleted = k8s.delete_custom_resource(ref)
+        _, deleted = k8s.delete_custom_resource(
+            ref, wait_periods=DELETE_WAIT_PERIODS, period_length=DELETE_PERIOD_LENGTH
+        )
         assert deleted
-        time.sleep(DELETE_WAIT_AFTER_SECONDS)
         assert not k8s.get_resource_exists(ref)
