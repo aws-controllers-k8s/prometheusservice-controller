@@ -345,8 +345,11 @@ class TestRuleGroupsNamespace:
 
         time.sleep(CREATE_WAIT_AFTER_SECONDS)
 
-        # The original resource should still be synced
-        condition.assert_synced(rule_ref_1)
+        # The original resource should still become synced. Amazon Managed
+        # Service for Prometheus can keep a rule groups namespace in CREATING for
+        # longer than CREATE_WAIT_AFTER_SECONDS, so wait for it the same way the
+        # CRUD test does instead of reading the condition once.
+        assert k8s.wait_on_condition(rule_ref_1, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
         
         # The second resource should remain in terminal error and not synced. 
         condition.assert_type_status(rule_ref_2, condition.CONDITION_TYPE_TERMINAL, True)
