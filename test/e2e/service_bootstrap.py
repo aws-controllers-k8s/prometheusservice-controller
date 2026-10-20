@@ -20,6 +20,7 @@ from e2e.bootstrap_resources import BootstrapResources
 from acktest.bootstrapping.sns import Topic
 from acktest.bootstrapping.cloudwatch import LogGroup
 from acktest.resources import random_suffix_name
+from e2e.bootstrappable.scraper_eks_cluster import ScraperEKSCluster
 
 def service_bootstrap() -> Resources:
     logging.getLogger().setLevel(logging.INFO)
@@ -33,6 +34,9 @@ def service_bootstrap() -> Resources:
         ),
         LoggingConfigurationLogGroup2 = LogGroup(
             name_prefix="/aws/vendedlogs/aps/ack-prometheus-test-log-group2"
+        ),
+        ScraperEKSCluster = ScraperEKSCluster(
+            name_prefix="ack-prometheus-test-scraper"
         ),
     )
 

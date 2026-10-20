@@ -19,6 +19,7 @@ rules:
   - alertmanagerdefinitions
   - loggingconfigurations
   - rulegroupsnamespaces
+  - scrapers
   - workspaces
   verbs:
   - create
@@ -34,6 +35,7 @@ rules:
   - alertmanagerdefinitions
   - loggingconfigurations
   - rulegroupsnamespaces
+  - scrapers
   - workspaces
   verbs:
   - get

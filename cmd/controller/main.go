@@ -45,6 +45,7 @@ import (
 	_ "github.com/aws-controllers-k8s/prometheusservice-controller/pkg/resource/alert_manager_definition"
 	_ "github.com/aws-controllers-k8s/prometheusservice-controller/pkg/resource/logging_configuration"
 	_ "github.com/aws-controllers-k8s/prometheusservice-controller/pkg/resource/rule_groups_namespace"
+	_ "github.com/aws-controllers-k8s/prometheusservice-controller/pkg/resource/scraper"
 	_ "github.com/aws-controllers-k8s/prometheusservice-controller/pkg/resource/workspace"
 
 	"github.com/aws-controllers-k8s/prometheusservice-controller/pkg/version"

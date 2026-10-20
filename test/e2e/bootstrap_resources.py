@@ -20,12 +20,14 @@ from acktest.bootstrapping import Resources
 from acktest.bootstrapping.sns import Topic
 from acktest.bootstrapping.cloudwatch import LogGroup
 from e2e import bootstrap_directory
+from e2e.bootstrappable.scraper_eks_cluster import ScraperEKSCluster
 
 @dataclass
 class BootstrapResources(Resources):
     AlertManagerSNSTopic: Topic
     LoggingConfigurationLogGroup1: LogGroup
     LoggingConfigurationLogGroup2: LogGroup
+    ScraperEKSCluster: ScraperEKSCluster
 
 _bootstrap_resources = None
 

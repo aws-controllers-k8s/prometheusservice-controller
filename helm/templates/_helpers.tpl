@@ -75,6 +75,7 @@ rules:
   - alertmanagerdefinitions
   - loggingconfigurations
   - rulegroupsnamespaces
+  - scrapers
   - workspaces
   verbs:
   - create
@@ -90,6 +91,7 @@ rules:
   - alertmanagerdefinitions/status
   - loggingconfigurations/status
   - rulegroupsnamespaces/status
+  - scrapers/status
   verbs:
   - get
   - patch

@@ -1,0 +1,32 @@
+
+apiVersion: prometheusservice.services.k8s.aws/v1alpha1
+kind: Scraper
+metadata:
+  namespace: default
+  name: $SCRAPER_ALIAS
+spec:
+  alias: $SCRAPER_ALIAS
+  source:
+    eksConfiguration:
+      clusterARN: $EKS_CLUSTER_ARN
+      subnetIDs: $EKS_SUBNET_IDS
+      securityGroupIDs: $EKS_SECURITY_GROUP_IDS
+  destination:
+    ampConfiguration:
+      workspaceRef:
+        from:
+          name: $WORKSPACE_NAME
+  configuration: |
+    global:
+      scrape_interval: 30s
+    scrape_configs:
+      - job_name: kubernetes-apiservers
+        kubernetes_sd_configs:
+          - role: endpoints
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          insecure_skip_verify: true
+  tags:
+    k1: v1
+    k2: v2
