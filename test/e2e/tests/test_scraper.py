@@ -35,6 +35,11 @@ UPDATE_WAIT_AFTER_SECONDS = 30
 # finding the scraper, so the CR outlives the delete call by minutes.
 DELETE_WAIT_PERIODS = 30
 DELETE_PERIOD_LENGTH = 30
+# The Spec.Source guard is the first statement in sdkUpdate and returns terminal
+# before any AWS call, so this needs a couple of reconciles rather than the synced
+# budget. Keeping it short makes a regression here fail fast instead of burning the
+# full 30 minutes, which is exactly what a stale version of this assertion cost.
+TERMINAL_WAIT_PERIODS = 5
 
 
 def assert_synced(ref):
@@ -203,16 +208,20 @@ class TestScraper:
         assert "k2" not in latest["tags"]
 
         # UpdateScraper accepts no source, so changing it must go terminal rather
-        # than reconcile forever.
+        # than reconcile forever. Mutate subnetIDs, not securityGroupIDs: the latter
+        # is excluded from the generated comparison because AMP assigns a security
+        # group when it is omitted, which makes emptying it a deliberate no-op,
+        # whereas subnetIDs is required and user-supplied and is still compared.
+        eks_cluster = get_bootstrap_resources().ScraperEKSCluster
         k8s.patch_custom_resource(
             ref,
             {
                 "spec": {
                     "source": {
                         "eksConfiguration": {
-                            "clusterARN": get_bootstrap_resources().ScraperEKSCluster.arn,
-                            "subnetIDs": get_bootstrap_resources().ScraperEKSCluster.subnet_ids,
-                            "securityGroupIDs": [],
+                            "clusterARN": eks_cluster.arn,
+                            "subnetIDs": eks_cluster.subnet_ids[:1],
+                            "securityGroupIDs": eks_cluster.security_group_ids,
                         }
                     }
                 }
@@ -220,12 +229,15 @@ class TestScraper:
         )
         time.sleep(UPDATE_WAIT_AFTER_SECONDS)
         assert k8s.wait_on_condition(
-            ref, "ACK.Terminal", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES
+            ref, "ACK.Terminal", "True", wait_periods=TERMINAL_WAIT_PERIODS
         )
-        # The source must not have changed in AWS.
+        # The source must not have changed in AWS. Compared as sets, since the API
+        # guarantees no ordering for either list.
         latest = self.describe_scraper(prometheusservice_client, scraper_id)
-        assert latest["source"]["eksConfiguration"]["securityGroupIds"] == (
-            get_bootstrap_resources().ScraperEKSCluster.security_group_ids
+        eks_source = latest["source"]["eksConfiguration"]
+        assert sorted(eks_source["subnetIds"]) == sorted(eks_cluster.subnet_ids)
+        assert sorted(eks_source["securityGroupIds"]) == sorted(
+            eks_cluster.security_group_ids
         )
 
         _, deleted = k8s.delete_custom_resource(
