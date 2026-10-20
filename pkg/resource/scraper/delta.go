@@ -76,13 +76,6 @@ func newResourceDelta(
 					delta.Add("Spec.Source.EKSConfiguration.ClusterARN", a.ko.Spec.Source.EKSConfiguration.ClusterARN, b.ko.Spec.Source.EKSConfiguration.ClusterARN)
 				}
 			}
-			if len(a.ko.Spec.Source.EKSConfiguration.SecurityGroupIDs) != len(b.ko.Spec.Source.EKSConfiguration.SecurityGroupIDs) {
-				delta.Add("Spec.Source.EKSConfiguration.SecurityGroupIDs", a.ko.Spec.Source.EKSConfiguration.SecurityGroupIDs, b.ko.Spec.Source.EKSConfiguration.SecurityGroupIDs)
-			} else if len(a.ko.Spec.Source.EKSConfiguration.SecurityGroupIDs) > 0 {
-				if !ackcompare.SliceStringPEqual(a.ko.Spec.Source.EKSConfiguration.SecurityGroupIDs, b.ko.Spec.Source.EKSConfiguration.SecurityGroupIDs) {
-					delta.Add("Spec.Source.EKSConfiguration.SecurityGroupIDs", a.ko.Spec.Source.EKSConfiguration.SecurityGroupIDs, b.ko.Spec.Source.EKSConfiguration.SecurityGroupIDs)
-				}
-			}
 			if len(a.ko.Spec.Source.EKSConfiguration.SubnetIDs) != len(b.ko.Spec.Source.EKSConfiguration.SubnetIDs) {
 				delta.Add("Spec.Source.EKSConfiguration.SubnetIDs", a.ko.Spec.Source.EKSConfiguration.SubnetIDs, b.ko.Spec.Source.EKSConfiguration.SubnetIDs)
 			} else if len(a.ko.Spec.Source.EKSConfiguration.SubnetIDs) > 0 {
@@ -102,6 +95,34 @@ func newResourceDelta(
 	} else if a.ko.Spec.Configuration != nil && b.ko.Spec.Configuration != nil {
 		if *a.ko.Spec.Configuration != *b.ko.Spec.Configuration {
 			delta.Add("Spec.Configuration", a.ko.Spec.Configuration, b.ko.Spec.Configuration)
+		}
+	}
+
+	// Spec.Source.EKSConfiguration.SecurityGroupIDs is excluded from the generated
+	// comparison above (compare.is_ignored in generator.yaml). AMP assigns a security
+	// group when the field is omitted, so comparing an empty desired value against the
+	// security group DescribeScraper reports would register a difference on every
+	// reconcile, which the Spec.Source guard in sdkUpdate rejects as an attempt to
+	// change an immutable source.
+	//
+	// Compare it here instead, and only when the user actually specified security
+	// groups, so a real attempt to change them is still reported rather than silently
+	// ignored.
+	if a.ko.Spec.Source != nil && a.ko.Spec.Source.EKSConfiguration != nil &&
+		len(a.ko.Spec.Source.EKSConfiguration.SecurityGroupIDs) > 0 {
+		var latestSecurityGroupIDs []*string
+		if b.ko.Spec.Source != nil && b.ko.Spec.Source.EKSConfiguration != nil {
+			latestSecurityGroupIDs = b.ko.Spec.Source.EKSConfiguration.SecurityGroupIDs
+		}
+		if !ackcompare.SliceStringPEqual(
+			a.ko.Spec.Source.EKSConfiguration.SecurityGroupIDs,
+			latestSecurityGroupIDs,
+		) {
+			delta.Add(
+				"Spec.Source.EKSConfiguration.SecurityGroupIDs",
+				a.ko.Spec.Source.EKSConfiguration.SecurityGroupIDs,
+				latestSecurityGroupIDs,
+			)
 		}
 	}
 

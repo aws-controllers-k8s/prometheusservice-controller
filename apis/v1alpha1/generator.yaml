@@ -148,6 +148,15 @@ resources:
         references:
           resource: Workspace
           path: Status.ACKResourceMetadata.ARN
+      # AMP assigns a security group when this field is omitted, and DescribeScraper
+      # then reports it. The generated comparison registers a difference on a length
+      # mismatch alone, so an omitted field would differ from the scraper's actual
+      # security group on every reconcile and trip the Spec.Source guard in sdkUpdate.
+      # Excluded here and re-compared in the delta_post_compare hook, which reports a
+      # difference only when the user actually specified security groups.
+      Source.EKSConfiguration.SecurityGroupIDs:
+        compare:
+          is_ignored: true
       Tags:
         custom_sync: {}
       # Only DescribeScraper returns these. StatusCode and StatusReason are flattened
@@ -173,6 +182,8 @@ resources:
           in:
             - ACTIVE
     hooks:
+      delta_post_compare:
+        template_path: hooks/scraper/delta_post_compare.go.tpl
       sdk_create_post_build_request:
         template_path: hooks/scraper/sdk_create_post_build_request.go.tpl
       sdk_read_one_pre_set_output:

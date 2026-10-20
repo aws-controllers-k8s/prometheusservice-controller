@@ -156,3 +156,85 @@ func Test_compareMaps(t *testing.T) {
 		})
 	}
 }
+
+// scraperWithSecurityGroups builds a scraper resource whose EKS source carries
+// the supplied security group IDs. A nil slice leaves the field unset, which is
+// what the CR looks like when the user omits it from the manifest. Every other
+// source field is held equal so a difference can only come from this one.
+func scraperWithSecurityGroups(securityGroupIDs []string) *resource {
+	ko := &svcapitypes.Scraper{}
+	ko.Spec.Source = &svcapitypes.Source{
+		EKSConfiguration: &svcapitypes.EKSConfiguration{
+			ClusterARN: aws.String("arn:aws:eks:us-west-2:000000000000:cluster/test"),
+			SubnetIDs:  aws.StringSlice([]string{"subnet-1", "subnet-2"}),
+		},
+	}
+	if securityGroupIDs != nil {
+		ko.Spec.Source.EKSConfiguration.SecurityGroupIDs = aws.StringSlice(securityGroupIDs)
+	}
+	return &resource{ko: ko}
+}
+
+// AMP assigns a security group when the user omits securityGroupIDs, so
+// DescribeScraper reports one the spec never asked for. That must not register as
+// a difference: Spec.Source is create-only and sdkUpdate rejects any difference
+// beneath it as an immutable-source change, which would leave a scraper created
+// without securityGroupIDs permanently unsynced. A security group the user did
+// specify still has to be compared, so a real change is reported rather than
+// silently ignored.
+func Test_newResourceDelta_securityGroupIDs(t *testing.T) {
+	const leafPath = "Spec.Source.EKSConfiguration.SecurityGroupIDs"
+	tests := []struct {
+		name          string
+		desired       []string
+		latest        []string
+		wantDifferent bool
+	}{
+		{
+			name:          "omitted by user, assigned by AMP",
+			desired:       nil,
+			latest:        []string{"sg-assigned"},
+			wantDifferent: false,
+		},
+		{
+			name:          "specified and unchanged",
+			desired:       []string{"sg-1"},
+			latest:        []string{"sg-1"},
+			wantDifferent: false,
+		},
+		{
+			name:          "specified, same set in a different order",
+			desired:       []string{"sg-1", "sg-2"},
+			latest:        []string{"sg-2", "sg-1"},
+			wantDifferent: false,
+		},
+		{
+			name:          "user changed the security group",
+			desired:       []string{"sg-2"},
+			latest:        []string{"sg-1"},
+			wantDifferent: true,
+		},
+		{
+			name:          "user added a security group",
+			desired:       []string{"sg-1", "sg-2"},
+			latest:        []string{"sg-1"},
+			wantDifferent: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			delta := newResourceDelta(
+				scraperWithSecurityGroups(tt.desired),
+				scraperWithSecurityGroups(tt.latest),
+			)
+			if got := delta.DifferentAt(leafPath); got != tt.wantDifferent {
+				t.Errorf("delta.DifferentAt(%q) = %v, want %v", leafPath, got, tt.wantDifferent)
+			}
+			// sdkUpdate guards on the whole Spec.Source subtree, so the spurious
+			// difference has to be absent there too, not just at the leaf.
+			if got := delta.DifferentAt("Spec.Source"); got != tt.wantDifferent {
+				t.Errorf("delta.DifferentAt(%q) = %v, want %v", "Spec.Source", got, tt.wantDifferent)
+			}
+		})
+	}
+}
